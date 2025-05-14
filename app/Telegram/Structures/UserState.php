@@ -13,7 +13,7 @@ class UserState
     //Usually dictates next message into the flow or some middle step
     public ?string $previousStepKey = null;
 
-    //Some extra data that might be necessary for the flow
+    //Some extra data that might be necessary for the flow. e.g - selectedStoreId
     public array $extra = [];
 
     public function __construct(int $userId)
