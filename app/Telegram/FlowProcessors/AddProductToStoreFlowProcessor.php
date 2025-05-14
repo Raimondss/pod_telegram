@@ -23,6 +23,7 @@ class AddProductToStoreFlowProcessor implements FlowProcessorInterface
         return $this->processUserState($state, $update);
     }
 
+    //Use current state + update - to send messages to user and return new state.
     public function processUserState(UserState $previousState, Update $update): UserState
     {
         //Flow just started - no previous step taken - ask to upload image
