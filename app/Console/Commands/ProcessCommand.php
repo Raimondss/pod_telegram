@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\TestJob;
+use App\Telegram\MessageProcessor;
 use Illuminate\Console\Command;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -12,28 +14,29 @@ class ProcessCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'telegram:process-command';
+    protected $signature = 'telegram:process-command {runPrevious}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Processes command queue';
 
     /**
      * Execute the console command.
+     * 290544079
      */
     public function handle()
     {
-        $updates = Telegram::getUpdates();
+        $runPrevious = $this->argument('runPrevious', false);
 
-        foreach ($updates as $update) {
-            echo $update['message']['from']['id'] . "\n";
-            Telegram::sendMessage([
-                'chat_id' => $update['message']['from']['id'],
-                'text' => "Hello world" . $update['message']['from']['first_name'] . " " . $update['message']['from']['last_name'],
-            ]);
+        /** @var MessageProcessor $processor */
+        $processor = app(MessageProcessor::class);
+        if($runPrevious) {
+            $processor->decrementProcessedId();
         }
+
+        $processor->run();
     }
 }
