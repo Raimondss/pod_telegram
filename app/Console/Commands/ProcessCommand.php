@@ -3,9 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Jobs\TestJob;
-use App\Telegram\MessageProcessor;
+use App\Telegram\MessageQueueProcessor;
 use Illuminate\Console\Command;
-use Telegram\Bot\Laravel\Facades\Telegram;
 
 class ProcessCommand extends Command
 {
@@ -31,9 +30,9 @@ class ProcessCommand extends Command
     {
         $runPrevious = $this->argument('runPrevious', false);
 
-        /** @var MessageProcessor $processor */
-        $processor = app(MessageProcessor::class);
-        if($runPrevious) {
+        /** @var MessageQueueProcessor $processor */
+        $processor = app(MessageQueueProcessor::class);
+        if ($runPrevious) {
             $processor->decrementProcessedId();
         }
 
