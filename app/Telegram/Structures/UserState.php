@@ -7,10 +7,10 @@ namespace App\Telegram\Structures;
 class UserState
 {
     public int $userId;
-    //Flow - started by receiving command /create_store -> /manage_stores
+    //Flow - started by receiving command /create_store -> /manage_stores or from other flows
     private ?string $startedFlowKey = null;
     //Previously sent message to customer -> "Enter Store name" . "Select store"
-    //Usually dictates next message into the flow
+    //Usually dictates next message into the flow or some middle step
     public ?string $previousStepKey = null;
 
     //Some extra data that might be necessary for the flow
