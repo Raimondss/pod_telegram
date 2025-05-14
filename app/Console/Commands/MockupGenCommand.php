@@ -8,10 +8,9 @@ use Illuminate\Console\Command;
 use Telegram\Bot\FileUpload\InputFile;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
-class TestCommand extends Command
+class MockupGenCommand extends Command
 {
     public function __construct(
-        private ProductGeneratorService $productGenerator,
         private MockupGeneratorService $mockupGeneratorService,
     ) {
         return parent::__construct();
@@ -22,7 +21,7 @@ class TestCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'telegram:test-command';
+    protected $signature = 'telegram:mockup-gen-command';
 
     /**
      * The console command description.
