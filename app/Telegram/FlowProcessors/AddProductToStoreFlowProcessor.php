@@ -25,6 +25,7 @@ class AddProductToStoreFlowProcessor implements FlowProcessorInterface
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
+        //Flow just started - no previous step taken - ask to upload image
         if (!$previousState->previousStepKey) {
             Telegram::sendMessage([
                 'chat_id' => $previousState->userId,
@@ -36,8 +37,9 @@ class AddProductToStoreFlowProcessor implements FlowProcessorInterface
             return $previousState;
         }
 
+        //We promoted to upload image and this $update should be a message
         if ($previousState->previousStepKey == self::STEP_WAIT_IMAGE_UPLOAD) {
-            //TODO Validate that update is image etc...
+            //TODO Validate that update is image etc... and start generation or w/e
             Telegram::sendMessage([
                 'chat_id' => $previousState->userId,
                 'text' => "Generating things...",
