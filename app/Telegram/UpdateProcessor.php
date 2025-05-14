@@ -41,25 +41,30 @@ class UpdateProcessor
      */
     public function processUpdate(Update $update): UserState
     {
-        $state = $this->getPreviousState($update);
+        $state = $this->getCurrentState($update);
 
         //User sends command or update determines that we need to start new flow - and exist current flow.
         $startFlowKey = $this->getStartFlowKeyFromUpdate($update);
-        var_dump($startFlowKey);
         if ($startFlowKey) {
             //Clear state and start new flow
             $state = $this->createEmptyState($this->getUpdateUserId($update));
             $state->setFlow($startFlowKey);
         }
 
-        $newState = $this->getProcessor($state->getStartedFlowKey())->processUserState($state, $update);
+        $processor = $this->getProcessor($state->getStartedFlowKey());
+
+        echo "Current state:" . PHP_EOL;
+        var_dump($state);
+        echo "Processing using: " . $processor::class . PHP_EOL;
+
+        $newState = $processor->processUserState($state, $update);
         $this->userStateService->setUserState($newState);
 
         return $newState;
     }
 
 
-    private function getPreviousState(Update $update): UserState
+    private function getCurrentState(Update $update): UserState
     {
         $userId = $this->getUpdateUserId($update);
 
@@ -90,8 +95,7 @@ class UpdateProcessor
     //TODO EXTRACT
     private function getUpdateUserId(Update $update): int
     {
-        var_dump($update);
-
+        //For Callbacks ->getMessage() returns initial message defining callback actions
         if ($update->callbackQuery) {
             return $update->callbackQuery->from->id;
         }
