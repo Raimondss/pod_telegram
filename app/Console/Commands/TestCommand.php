@@ -63,7 +63,6 @@ class TestCommand extends Command
                     while (true) {
                         $message = 'Waiting for mockups...';
 
-                        echo $message . PHP_EOL;
                         Telegram::sendMessage([
                             'chat_id' => $chatId,
                             'text' => $message,
@@ -72,8 +71,6 @@ class TestCommand extends Command
                         sleep(1);
 
                         $taskResult = $this->mockupGeneratorService->getGeneratorTask($task['id']);
-
-                        var_dump($taskResult);
 
                         if ($taskResult['status'] === 'completed') {
 
@@ -99,11 +96,6 @@ class TestCommand extends Command
 
                 break;
             }
-
-//            Telegram::sendMessage([
-//                'chat_id' => $update['message']['from']['id'],
-//                'text' => "Hello world" . $update['message']['from']['first_name'] . " " . $update['message']['from']['last_name'],
-//            ]);
         }
     }
 
