@@ -6,6 +6,7 @@ namespace App\Telegram;
 
 use App\Commands\CommandInterface;
 use App\Commands\CreateStoreCommand;
+use App\Commands\StartCommand;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -20,7 +21,8 @@ class MessageProcessor
     private const int MESSAGE_LIMIT = 1;
 
     public const COMMAND_MAPPING = [
-        '/create_store' => CreateStoreCommand::class
+        '/create_store' => CreateStoreCommand::class,
+        "/start" => StartCommand::class
     ];
 
     public function run(): void
@@ -79,8 +81,9 @@ class MessageProcessor
         $command->process($update);
     }
 
-    private function getCommand(string $commandKey): ?CommandInterface
+    private function getCommand(string $message): ?CommandInterface
     {
+        $commandKey = explode(" ", $message)[0];
         $command = self::COMMAND_MAPPING[$commandKey] ?? null;
 
         if (!$command) {
@@ -104,6 +107,7 @@ class MessageProcessor
             ]);
 
             var_dump("NO COMMAND MAPPING FOR : " . $messageText);
+            return;
         }
 
         $this->userStateService->setUserState($userId, $command::class, $command->getStartState());

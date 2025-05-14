@@ -2,7 +2,9 @@
 
 namespace App\Commands;
 
+use App\Stores\Services\StoreCreationService;
 use App\Telegram\UserStateService;
+use App\Users\Services\TelegramUserService;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Objects\Update;
 
@@ -19,7 +21,10 @@ class CreateStoreCommand implements CommandInterface
 
     public const string COMMAND_CREATE_STORE = 'create_store';
 
-    public function __construct(private readonly UserStateService $userStateService) {}
+    public function __construct(private readonly UserStateService     $userStateService,
+                                private readonly TelegramUserService  $telegramUserService,
+                                private readonly StoreCreationService $storeCreationService,
+    ) {}
 
     public function process(Update $update): void
     {
@@ -52,13 +57,16 @@ class CreateStoreCommand implements CommandInterface
                 return;
 
             case self::STATE_WAITING_NAME:
+
+                $user = $this->telegramUserService->findOrCreateUserFromUpdate($update);
                 Telegram::sendMessage(
                     [
                         'chat_id' => $userId,
-                        'text' => "Store with name:" . $message . " created",
+                        'text' => "Store created",
                     ]
                 );
 
+                $this->storeCreationService->createStore($user, $message);
                 $this->userStateService->setUserState($userId, self::COMMAND_CREATE_STORE, self::STATE_WAITING_NAME);
                 $this->userStateService->clearUserState($userId);
 
