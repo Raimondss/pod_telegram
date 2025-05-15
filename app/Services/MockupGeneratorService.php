@@ -112,14 +112,21 @@ class MockupGeneratorService
         int $userId,
         string $fileUrl
     ): void {
+
+
         Telegram::sendMessage(
             [
                 'chat_id' => $userId,
-                'text' => 'Mockups are finished! ' . CreateProductCommand::TEXT_SELECT_PRODUCTS,
+                'text' => 'Mockups are finished! ' . CreateProductCommand::TEXT_SELECT_PRODUCTS . '->' . count($generatorTasks) . '<-',
             ]
         );
 
+        Log::info('Generator tasks: ' . count($generatorTasks));
+
         foreach ($generatorTasks as $generatorTask) {
+            Log::info('Catalog variant mockups in task: ' . count($generatorTask->catalogVariantMockups));
+            Log::info(print_r($generatorTask, true));
+
             foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
                 $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
                 if (!$product) {
