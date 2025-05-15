@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  *
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $mockup_url
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\TelegramUserProduct|null $product
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUserVariant newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUserVariant newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUserVariant query()
@@ -53,4 +55,21 @@ class TelegramUserVariant extends Model
     public const string STATUS_ERROR = 'error';
 
     use HasFactory;
+
+    public function product(): HasOne
+    {
+        return $this->hasOne(TelegramUserProduct::class, 'id', 'telegram_user_product_id');
+    }
+
+    public function getDisplayTitle(): string
+    {
+        //TODO we need "product name also"
+        return $this->product->design_name . ' - ' . $this->color . ' - ' . $this->size;
+    }
+
+    public function getDescription(): string
+    {
+        //TODO add Description
+        return "Very nice description";
+    }
 }

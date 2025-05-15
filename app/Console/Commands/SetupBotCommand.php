@@ -29,6 +29,10 @@ class SetupBotCommand extends Command
         Telegram::setMyCommands([
             'commands' => [
                 [
+                    'command' => '/buy',
+                    'description' => 'Browse stores and purchase products',
+                ],
+                [
                     'command' => '/create_store',
                     'description' => 'Create new store',
                 ],

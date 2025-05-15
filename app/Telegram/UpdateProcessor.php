@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Telegram;
 
-use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
 use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
+use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateStoreFlowProcessor;
 use App\Telegram\FlowProcessors\EmptyFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
 use App\Telegram\FlowProcessors\ManageStoresFlowProcessor;
+use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
+use App\Telegram\FlowProcessors\SuccessfulPaymentProcessor;
 use App\Telegram\Structures\UserState;
 use Exception;
 use Telegram\Bot\Objects\Update;
@@ -20,6 +22,10 @@ class UpdateProcessor
     public const string MANAGE_STORES_FLOW_KEY = 'manage_stores_flow';
     public const string ADD_PRODUCT_TO_STORE_FLOW_KEY = 'add_product_to_store_flow';
 
+    public const string CHECKOUT_COMPLETE_FLOW = 'checkout_complete_flow';
+
+    public const string SUCCESSFUL_PAYMENT_FLOW = 'successfull_payment_flow';
+
     public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
 
     public const string COMMAND_CREATE_STORE = '/create_store';
@@ -27,12 +33,16 @@ class UpdateProcessor
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
+    public const string COMMAND_BUY_PRODUCT = '/buy';
+
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
         null => EmptyFlowProcessor::class,
         self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
         self::CREATE_STORE_FLOW_KEY => CreateStoreFlowProcessor::class,
         self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class,
         self::ADD_PRODUCT_FLOW_KEY => CreateProductFlowProcessor::class,
+        self::CHECKOUT_COMPLETE_FLOW => PreCheckoutQueryProcessor::class,
+        self::SUCCESSFUL_PAYMENT_FLOW => SuccessfulPaymentProcessor::class,
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
@@ -48,6 +58,7 @@ class UpdateProcessor
      */
     public function processUpdate(Update $update): UserState
     {
+        dump($update);
         $state = $this->getCurrentState($update);
 
         //User sends command or update determines that we need to start new flow - and exist current flow.
@@ -85,6 +96,14 @@ class UpdateProcessor
 
     public function getStartFlowKeyFromUpdate(Update $update): ?string
     {
+        if ($update->isType('pre_checkout_query')) {
+            return self::CHECKOUT_COMPLETE_FLOW;
+        }
+
+        if ($update->getMessage()->successful_payment) {
+            return self::SUCCESSFUL_PAYMENT_FLOW;
+        }
+
         $message = $update->getMessage()->text ?? '';
 
         var_dump($message);

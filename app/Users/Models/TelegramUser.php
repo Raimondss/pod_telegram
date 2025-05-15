@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ *
+ *
  * @property int $id
- * @property int $telegram_user_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property-read \Illuminate\Database\Eloquent\Collection<int, Store> $stores
@@ -19,7 +20,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUser query()
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUser whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUser whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|TelegramUser whereTelegramUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TelegramUser whereUpdatedAt($value)
  * @mixin \Eloquent
  */
