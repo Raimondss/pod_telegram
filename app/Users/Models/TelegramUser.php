@@ -8,8 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- *
- *
  * @property int $id
  * @property int $telegram_user_id
  * @property \Illuminate\Support\Carbon|null $created_at

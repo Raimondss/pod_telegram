@@ -18,8 +18,8 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
     public const STEP_WAITING_PROFIT_MARGIN = 'waiting_profit_margin';
 
-    public const string REQUEST_IMAGES_TEXT = 'Please provide images';
-    public const string REQUEST_PRODUCT_NAME_TEXT = 'How would you like to call your product?';
+    public const string REQUEST_IMAGES_TEXT = 'Please provide your design';
+    public const string REQUEST_PRODUCT_NAME_TEXT = 'How would you like to call your design?';
 
     const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin?';
 
@@ -70,7 +70,6 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
             $largestFileId = $this->getLargestFileId($photos);
 
-            dump($photos);
             $file = Telegram::getFile([
                 'file_id' => $largestFileId,
             ]);
@@ -79,11 +78,13 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
             $fileUrl = 'https://api.telegram.org/file/bot' . env('TELEGRAM_BOT_TOKEN') . '/' . $filePath;
             $this->createVariantsFromFileUrl($previousState->userId, $fileUrl, $previousState->extra['profit_margin'], $previousState->extra['product_name']);
 
-            return $previousState;
+            $this->sendMessage($previousState->userId, "We are creating your products - you can check status in /my_products");
 
-            //NO PHOTOS - SEND MESSAGE ASK FOR PHOTOS AGAIN
-            //TODO QUEUE PRODUCT CREATION JOB
+            //TODO Move user to my products flow?
+            return UserState::getFreshState($previousState->userId, null);
         }
+
+        return $previousState;
     }
 
     public function sendMessage(int $chatId, string $message): void
