@@ -11,14 +11,11 @@ use Telegram\Bot\Objects\Update;
 
 class TelegramUserService
 {
-
     /**
      * @throws Exception
      */
     public function findOrCreateUserFromUpdate(Update $update): TelegramUser
     {
-        $lock = Cache::lock('processing-job-lock', 5);
-
         $telegramUserId = $update->getMessage()->from->id;
 
         $user = TelegramUser::where('telegram_user_id', $telegramUserId)->first();
@@ -26,6 +23,7 @@ class TelegramUserService
             return $user;
         }
 
+        $lock = Cache::lock('processing-job-lock', 5);
         if ($lock->get()) {
             try {
                 $user = TelegramUser::where('telegram_user_id', $telegramUserId)->first();
