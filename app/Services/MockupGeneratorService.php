@@ -5,24 +5,23 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\APIs\PrintfulApi;
-use App\Commands\CreateProductCommand;
 use App\Params\ApiMockupGeneratorParams;
 use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
+use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
+use App\Telegram\UpdateProcessor;
 use App\Telegram\UserStateService;
-use Log;
 use Telegram;
 use Telegram\Bot\FileUpload\InputFile;
 
 class MockupGeneratorService
 {
     public function __construct(
-        private PrintfulApi $api,
+        private PrintfulApi      $api,
         private UserStateService $userStateService,
-    ) {
-    }
+    ) {}
 
     protected function getProductMap(): array
     {
@@ -108,35 +107,38 @@ class MockupGeneratorService
      * @return void
      */
     public function processCompletedGeneratorTasks(
-        array $generatorTasks,
-        int $userId,
+        array  $generatorTasks,
+        int    $userId,
         string $fileUrl
-    ): void {
+    ): void
+    {
         Telegram::sendMessage(
             [
                 'chat_id' => $userId,
-                'text' => 'Mockups are finished! ' . CreateProductCommand::TEXT_SELECT_PRODUCTS,
+                'text' => 'Mockups are finished!',
             ]
         );
 
-        Log::info('Generator tasks: ' . count($generatorTasks));
+        var_dump($generatorTasks);
 
         foreach ($generatorTasks as $generatorTask) {
-            Log::info('Catalog variant mockups in task: ' . count($generatorTask->catalogVariantMockups));
+            Telegram::sendMessage(
+                [
+                    'chat_id' => $userId,
+                    'text' => 'Tasks we have!',
+                ]
+            );
 
             foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
                 $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
                 if (!$product) {
-                    Log::info('Product not found for catalog variant id ' . $catalogVariantMockup['catalog_variant_id']);
                     continue;
                 }
-
-                Log::info('Product found for catalog variant id ' . $catalogVariantMockup['catalog_variant_id']);
 
                 Telegram::sendMessage(
                     [
                         'chat_id' => $userId,
-                        'text' => $product['title'] . '(ID:' . $product['id']  . ')',
+                        'text' => $product['title'] . '(ID:' . $product['id'] . ')',
                     ]
                 );
 
@@ -149,11 +151,28 @@ class MockupGeneratorService
             }
         }
 
-        $this->userStateService->setUserState(
-            $userId,
-            CreateProductCommand::COMMAND_CREATE_PRODUCT,
-            CreateProductCommand::STATE_WAITING_PRODUCT_SELECTION
+        Telegram::sendMessage(
+            [
+                'chat_id' => $userId,
+                'text' => 'Mockups usser state!',
+            ]
         );
+
+        $userState = $this->userStateService->getUserState($userId);
+
+        if ($userState->getStartedFlowKey() != UpdateProcessor::ADD_PRODUCT_TO_STORE_FLOW_KEY) {
+            //Customer already started different flow while waiting
+            return;
+        }
+
+        $userState->previousStepKey = AddProductToStoreFlowProcessor::STATE_WAITING_PRODUCT_SELECTION;
+        /**
+         * @type AddProductToStoreFlowProcessor $storeFlow
+         */
+        $storeFlow = app(AddProductToStoreFlowProcessor::class);
+        $storeFlow->processUserState($userState, new Telegram\Bot\Objects\Update([]));
+
+        //TODO Resume AddProductToStoreFlowProcessor with new state.
     }
 
     protected function findProductByVariantId(int $variantId): array
