@@ -12,6 +12,7 @@ use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\UserStateService;
+use Log;
 use Telegram;
 use Telegram\Bot\FileUpload\InputFile;
 
@@ -122,8 +123,11 @@ class MockupGeneratorService
             foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
                 $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
                 if (!$product) {
+                    Log::info('Product not found for catalog variant id ' . $catalogVariantMockup->catalog_variant_id);
                     continue;
                 }
+
+                Log::info('Product found for catalog variant id ' . $catalogVariantMockup->catalog_variant_id);
 
                 Telegram::sendMessage(
                     [

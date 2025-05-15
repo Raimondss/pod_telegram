@@ -7,6 +7,7 @@ namespace App\APIs;
 use App\Clients\PrintfulApiClient;
 use App\Params\ApiMockupGeneratorParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
+use Log;
 
 class PrintfulApi
 {
@@ -55,6 +56,8 @@ class PrintfulApi
             '/v2/mockup-tasks',
             ['id' => implode(',', $ids)]
         );
+
+        Log::info(print_r($response, true));
 
         return array_map(
             static fn (array $data): ApiMockupGeneratorTask => ApiMockupGeneratorTask::fromArray($data),

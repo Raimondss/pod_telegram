@@ -20,7 +20,7 @@ class ApiMockupGeneratorTask
         $self = new self();
         $self->id = $data['id'] ?? null;
         $self->status = $data['status'] ?? null;
-        $self->catalogVariantMockups = $data['catalog_variants_mockups'] ?? [];
+        $self->catalogVariantMockups = $data['catalog_variant_mockups'] ?? [];
 
         return $self;
     }
