@@ -14,7 +14,6 @@ use App\Telegram\Structures\UserState;
 use App\Users\Services\TelegramUserService;
 use Exception;
 use Telegram\Bot\Objects\Update;
-use function PHPUnit\Framework\stringContains;
 
 class UpdateProcessor
 {
@@ -55,7 +54,6 @@ class UpdateProcessor
 //        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
         self::COMMAND_BROWSE_PRODUCTS => self::BROWSE_PRODUCTS_FLOW,
-        self::COMMAND_START => self::BUY_PRODUCT_FLOW,
     ];
 
     public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
@@ -115,7 +113,7 @@ class UpdateProcessor
 
         $message = $update->getMessage()->text ?? '';
 
-        if (stringContains('/start')) {
+        if (str_contains($message, 'buy_product')) {
             return self::BUY_PRODUCT_FLOW;
         }
 

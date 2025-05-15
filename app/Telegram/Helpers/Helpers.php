@@ -12,7 +12,7 @@ class Helpers
     {
         $botUsername = env('BOT_USERNAME');
 
-        return "https://t.me/" . $botUsername . "?start=" . $variantId;
+        return "https://t.me/" . $botUsername . "?start=buy_product_" . $variantId;
     }
 
     public static function sendMessage(int $chatId, string $text): void

@@ -11,7 +11,6 @@ class SuccessfulPaymentProcessor implements FlowProcessorInterface
 {
     public function processUserState(UserState $previousState, Update $update): UserState
     {
-
         $data = $update->getMessage()->successful_payment ?? null;
 
         if (!$data) {

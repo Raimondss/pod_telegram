@@ -17,7 +17,9 @@ class BuyProductFlowProcessor implements FlowProcessorInterface
     {
         $message = $update->getMessage()->text ?? '';
 
-        $variantId = explode(" ", $message)[1] ?? null;
+
+        $buyProductString = explode(" ", $message)[1] ?? null;
+        $variantId = str_replace('buy_product_', '', $buyProductString);
 
         if (!$variantId) {
             return UserState::getFreshState($previousState->userId, null);

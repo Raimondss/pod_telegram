@@ -12,7 +12,6 @@ class PreCheckoutQueryProcessor implements FlowProcessorInterface
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
-
         \Telegram::answerPreCheckoutQuery([
             'pre_checkout_query_id' => $update->preCheckoutQuery->id,
             'ok' => true,
