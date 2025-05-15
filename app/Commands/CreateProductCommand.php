@@ -133,6 +133,8 @@ class CreateProductCommand implements CommandInterface
                         'text' => 'Products created!',
                     ]
                 );
+
+                $this->userStateService->clearUserState($userId);
                 break;
             default:
                 Telegram::sendMessage(

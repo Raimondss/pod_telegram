@@ -12,6 +12,7 @@ use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\UserStateService;
+use Log;
 use Telegram;
 use Telegram\Bot\FileUpload\InputFile;
 
@@ -40,7 +41,7 @@ class MockupGeneratorService
             ],
             19 => [ // Glossy mug
                 'id' => 19,
-                'Title' => 'White Glossy Mug',
+                'title' => 'White Glossy Mug',
                 'variant_ids' => [
                     1320, // 11 oz
                 ],
@@ -118,12 +119,19 @@ class MockupGeneratorService
             ]
         );
 
+        Log::info('Generator tasks: ' . count($generatorTasks));
+
         foreach ($generatorTasks as $generatorTask) {
+            Log::info('Catalog variant mockups in task: ' . count($generatorTask->catalogVariantMockups));
+
             foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
                 $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
                 if (!$product) {
+                    Log::info('Product not found for catalog variant id ' . $catalogVariantMockup['catalog_variant_id']);
                     continue;
                 }
+
+                Log::info('Product found for catalog variant id ' . $catalogVariantMockup['catalog_variant_id']);
 
                 Telegram::sendMessage(
                     [
@@ -135,7 +143,7 @@ class MockupGeneratorService
                 foreach ($catalogVariantMockup['mockups'] as $mockup) {
                     Telegram::sendPhoto([
                         'chat_id' => $userId,
-                        'photo' => InputFile::create($mockup),
+                        'photo' => InputFile::create($mockup['mockup_url']),
                     ]);
                 }
             }

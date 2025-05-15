@@ -19,6 +19,10 @@ class ProcessGenerateMockupsTasks implements ShouldQueue
 
     public int $tries = 100; // max 100 attempts
 
+    public function backoff(): int
+    {
+        return 1; // retry after 1 seconds
+    }
 
     /**
      * Create a new job instance.
