@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property int $telegram_user_id
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|Store query()
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|Store whereStoreName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Store whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereTelegramUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Store whereUpdatedAt($value)
  * @mixin \Eloquent

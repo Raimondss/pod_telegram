@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Telegram;
 
+use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
 use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
 use App\Telegram\FlowProcessors\CreateStoreFlowProcessor;
 use App\Telegram\FlowProcessors\EmptyFlowProcessor;
@@ -19,19 +20,25 @@ class UpdateProcessor
     public const string MANAGE_STORES_FLOW_KEY = 'manage_stores_flow';
     public const string ADD_PRODUCT_TO_STORE_FLOW_KEY = 'add_product_to_store_flow';
 
+    public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
+
     public const string COMMAND_CREATE_STORE = '/create_store';
     public const string COMMAND_MANAGE_STORE = '/manage_stores';
+
+    public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
         null => EmptyFlowProcessor::class,
         self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
         self::CREATE_STORE_FLOW_KEY => CreateStoreFlowProcessor::class,
-        self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class
+        self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class,
+        self::ADD_PRODUCT_FLOW_KEY => CreateProductFlowProcessor::class,
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
         self::COMMAND_CREATE_STORE => self::CREATE_STORE_FLOW_KEY,
         self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
+        self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
     ];
 
     public function __construct(private UserStateService $userStateService) {}
