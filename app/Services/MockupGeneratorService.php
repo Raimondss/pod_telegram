@@ -49,7 +49,7 @@ class MockupGeneratorService
                     1320, // 11 oz
                 ],
                 'mockup_style_ids' => [
-                    1320,
+                    10423,
                 ],
                 'placement' => 'default',
                 'technique' => 'sublimation',
