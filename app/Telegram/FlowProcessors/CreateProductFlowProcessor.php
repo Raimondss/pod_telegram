@@ -21,7 +21,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
     public const string REQUEST_IMAGES_TEXT = 'Please provide images';
     public const string REQUEST_PRODUCT_NAME_TEXT = 'How would you like to call your product?';
 
-    const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin?';
+    const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin %?';
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
@@ -51,7 +51,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 return $previousState;
             }
 
-            $previousState->extra['profit_margin'] = (int)$profitMargin;
+            $previousState->extra['profit_margin'] = (int) $profitMargin;
 
             $this->sendMessage($previousState->userId, self::REQUEST_IMAGES_TEXT);
             $previousState->previousStepKey = self::STEP_WAITING_IMAGE;
@@ -125,7 +125,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                     'variant_id' => $id,
                     'size' => $size,
                     'status' => TelegramUserVariant::STATUS_PENDING,
-                    'price' => $basePrice + ($basePrice * $marginPercentage),
+                    'price' => $basePrice + ($basePrice * ($marginPercentage / 100)),
                     'created_at' => now(),
                     'updated_at' => now(),
                 ];
