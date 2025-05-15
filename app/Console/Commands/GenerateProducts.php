@@ -46,6 +46,9 @@ class GenerateProducts extends Command
 
             Log::info('Creating a task for: ' . $pendingProduct->id);
 
+            $pendingProduct->status = TelegramUserProduct::STATUS_PROCESSING;
+            $pendingProduct->save();
+
             $pendingVariants = TelegramUserVariant::where([
                 'status' => TelegramUserProduct::STATUS_PENDING,
                 'telegram_user_product_id' => $pendingProduct->id
@@ -63,9 +66,6 @@ class GenerateProducts extends Command
             }
 
             Log::info('Task created');
-
-            $pendingProduct->status = TelegramUserProduct::STATUS_PROCESSING;
-            $pendingProduct->save();
 
             ProcessGenerateMockupsJob::dispatch($pendingProduct->id, $task->id);
         }
