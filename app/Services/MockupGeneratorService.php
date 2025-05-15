@@ -28,7 +28,7 @@ class MockupGeneratorService
         return [
             71 => [ // bella canvas
                 'id' => 71,
-                'Title' => 'Bella Canvas',
+                'title' => 'Bella Canvas',
                 'variant_ids' => [
                     4011, // White + M
                     4017, // Black + M
@@ -128,7 +128,7 @@ class MockupGeneratorService
                 Telegram::sendMessage(
                     [
                         'chat_id' => $userId,
-                        'text' => $product['name'] . '(ID:' . $product['id']  . ')',
+                        'text' => $product['title'] . '(ID:' . $product['id']  . ')',
                     ]
                 );
 
