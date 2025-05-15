@@ -32,7 +32,7 @@ class UserState
         return $this->startedFlowKey;
     }
 
-    public static function getFreshState(int $userId, string $flowKey, array $extra = []): UserState
+    public static function getFreshState(int $userId, ?string $flowKey, array $extra = []): UserState
     {
         $state = new self($userId);
         $state->setFlow($flowKey);
