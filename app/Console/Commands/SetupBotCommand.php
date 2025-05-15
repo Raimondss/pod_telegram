@@ -35,6 +35,10 @@ class SetupBotCommand extends Command
                 [
                     'command' => '/create_product',
                     'description' => 'Create product',
+                ],
+                [
+                    'command' => '/my_products',
+                    'description' => 'My products',
                 ]
             ]
         ]);

@@ -12,8 +12,6 @@ use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
-use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
-use App\Telegram\UpdateProcessor;
 use App\Telegram\UserStateService;
 use Exception;
 use Log;

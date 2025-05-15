@@ -9,13 +9,13 @@ use Telegram\Bot\Objects\Update;
 
 class PreCheckoutQueryProcessor implements FlowProcessorInterface
 {
-
+    //Enables us to validate data beofore actual payment - so far always all good!
     public function processUserState(UserState $previousState, Update $update): UserState
     {
-
         \Telegram::answerPreCheckoutQuery([
             'pre_checkout_query_id' => $update->preCheckoutQuery->id,
             'ok' => true,
+//            'error_message' => null,
         ]);
 
         return UserState::getFreshState($previousState->userId, null);

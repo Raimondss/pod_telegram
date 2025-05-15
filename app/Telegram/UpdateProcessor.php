@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Telegram;
 
-use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
+use App\Telegram\FlowProcessors\BuyProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
-use App\Telegram\FlowProcessors\CreateStoreFlowProcessor;
 use App\Telegram\FlowProcessors\EmptyFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
-use App\Telegram\FlowProcessors\ManageStoresFlowProcessor;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
 use App\Telegram\FlowProcessors\SuccessfulPaymentProcessor;
 use App\Telegram\Structures\UserState;
@@ -23,33 +21,39 @@ class UpdateProcessor
     public const string MANAGE_STORES_FLOW_KEY = 'manage_stores_flow';
     public const string ADD_PRODUCT_TO_STORE_FLOW_KEY = 'add_product_to_store_flow';
 
-    public const string CHECKOUT_COMPLETE_FLOW = 'checkout_complete_flow';
+    public const string BROWSE_PRODUCTS_FLOW = 'browse_products_flow';
+    public const string BUY_PRODUCT_FLOW = 'buy_product_flow';
 
+    public const string CHECKOUT_COMPLETE_FLOW = 'checkout_complete_flow';
     public const string SUCCESSFUL_PAYMENT_FLOW = 'successfull_payment_flow';
 
     public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
 
     public const string COMMAND_CREATE_STORE = '/create_store';
-    public const string COMMAND_MANAGE_STORE = '/manage_stores';
+    public const string COMMAND_MANAGE_STORE = '/my_products';
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
-    public const string COMMAND_BUY_PRODUCT = '/buy';
+    public const string COMMAND_BROWSE_PRODUCTS = '/browse_products';
+
+    private const string COMMAND_START = '/start';
 
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
         null => EmptyFlowProcessor::class,
-        self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
-        self::CREATE_STORE_FLOW_KEY => CreateStoreFlowProcessor::class,
-        self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class,
+//        self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
+//        self::CREATE_STORE_FLOW_KEY => CreateStoreFlowProcessor::class,
+//        self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class,
         self::ADD_PRODUCT_FLOW_KEY => CreateProductFlowProcessor::class,
         self::CHECKOUT_COMPLETE_FLOW => PreCheckoutQueryProcessor::class,
         self::SUCCESSFUL_PAYMENT_FLOW => SuccessfulPaymentProcessor::class,
+        self::BUY_PRODUCT_FLOW => BuyProductFlowProcessor::class,
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
 //        self::COMMAND_CREATE_STORE => self::CREATE_STORE_FLOW_KEY,
 //        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
+        self::COMMAND_BROWSE_PRODUCTS => self::BROWSE_PRODUCTS_FLOW,
     ];
 
     public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
@@ -108,6 +112,10 @@ class UpdateProcessor
         }
 
         $message = $update->getMessage()->text ?? '';
+
+        if (str_contains($message, 'buy_product')) {
+            return self::BUY_PRODUCT_FLOW;
+        }
 
         var_dump($message);
 
