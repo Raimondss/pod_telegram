@@ -15,6 +15,7 @@ class PreCheckoutQueryProcessor implements FlowProcessorInterface
         \Telegram::answerPreCheckoutQuery([
             'pre_checkout_query_id' => $update->preCheckoutQuery->id,
             'ok' => true,
+//            'error_message' => null,
         ]);
 
         return UserState::getFreshState($previousState->userId, null);
