@@ -2,7 +2,9 @@
 
 namespace App\Commands;
 
-use App\Jobs\GenerateMockups;
+use App\Jobs\ProcessGenerateMockupsTasks;
+use App\Services\MockupGeneratorService;
+use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\UserStateService;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Objects\Update;
@@ -18,10 +20,15 @@ class CreateProductCommand implements CommandInterface
     public const string STATE_INITIAL = 'initial';
     public const string STATE_WAITING_IMAGE = 'image';
     public const string STATE_GENERATING_MOCKUPS = 'generating-mockups';
+    public const string STATE_WAITING_PRODUCT_SELECTION = 'waiting-product-selection';
 
     public const TEXT_UPLOAD_YOUR_DESIGN = 'Please upload you design...';
+    public const TEXT_SELECT_PRODUCTS = 'Please select desired products by providing comma(,) seperated ids...';
 
-    public function __construct(private readonly UserStateService $userStateService) {}
+    public function __construct(
+        private readonly UserStateService $userStateService,
+        private readonly MockupGeneratorService $mockupGeneratorService
+    ) {}
 
     public function process(Update $update): void
     {
@@ -37,6 +44,7 @@ class CreateProductCommand implements CommandInterface
     public function processState(string $state, Update $update): void
     {
         $userId = $update->getMessage()->from->id;
+        $message = $update->getMessage()->text ?? '';
 
         switch ($state) {
             case self::STATE_INITIAL:
@@ -74,7 +82,13 @@ class CreateProductCommand implements CommandInterface
 
                 $fileUrl = 'https://api.telegram.org/file/bot' . env('TELEGRAM_BOT_TOKEN') . '/' . $filePath;
 
-                GenerateMockups::dispatch($userId, $fileUrl);
+                $tasks = $this->mockupGeneratorService->generateMockupsByUrl($fileUrl);
+                $taskIds = array_map(
+                    static fn (ApiMockupGeneratorTask $task) => $task->id,
+                    $tasks
+                );
+
+                ProcessGenerateMockupsTasks::dispatch($userId, $fileUrl, $taskIds);
 
                 Telegram::sendMessage(
                     [
@@ -95,6 +109,31 @@ class CreateProductCommand implements CommandInterface
                 );
 
                 return;
+            case self::STATE_WAITING_PRODUCT_SELECTION:
+                $ids = $this->extractIntegers($message);
+
+                if (!$ids) {
+                    Telegram::sendMessage(
+                        [
+                            'chat_id' => $userId,
+                            'text' => self::TEXT_SELECT_PRODUCTS,
+                        ]
+                    );
+
+                    return;
+                }
+
+                // create products
+
+                // todo create products
+
+                Telegram::sendMessage(
+                    [
+                        'chat_id' => $userId,
+                        'text' => 'Products created!',
+                    ]
+                );
+                break;
             default:
                 Telegram::sendMessage(
                     [
@@ -117,6 +156,17 @@ class CreateProductCommand implements CommandInterface
         );
 
         return $largest['file_id'] ?? null;
+    }
+
+    protected function extractIntegers(string $message): array
+    {
+        return array_values(array_filter(
+            array_map(function ($item) {
+                $trimmed = trim($item);
+                return filter_var($trimmed, FILTER_VALIDATE_INT) !== false ? (int) $trimmed : null;
+            }, explode(',', $message)),
+            static fn($item) => !is_null($item)
+        ));
     }
 
     public function getStartState(): string

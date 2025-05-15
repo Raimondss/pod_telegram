@@ -5,16 +5,50 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\APIs\PrintfulApi;
+use App\Commands\CreateProductCommand;
 use App\Params\ApiMockupGeneratorParams;
 use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
+use App\Telegram\UserStateService;
+use Telegram;
+use Telegram\Bot\FileUpload\InputFile;
 
 class MockupGeneratorService
 {
-    public function __construct(private PrintfulApi $api)
+    public function __construct(
+        private PrintfulApi $api,
+        private UserStateService $userStateService,
+    ) {
+    }
+
+    protected function getProductMap(): array
     {
+        return [
+            71 => [ // bella canvas
+                'id' => 71,
+                'Title' => 'Bella Canvas',
+                'variant_ids' => [
+                    4011, // White + M
+                    4017, // Black + M
+                    4082 // Gold + M
+                ],
+                'mockup_style_ids' => [
+                    744
+                ],
+            ],
+            19 => [ // Glossy mug
+                'id' => 19,
+                'Title' => 'White Glossy Mug',
+                'variant_ids' => [
+                    1320, // 11 oz
+                ],
+                'mockup_style_ids' => [
+                    10421
+                ],
+            ],
+        ];
     }
 
     /**
@@ -23,18 +57,7 @@ class MockupGeneratorService
      */
     public function generateMockupsByUrl(string $url): array
     {
-        $productMap = [
-            71 => [ // bella canvas
-                'variant_ids' => [
-                    4011, // White + M
-                    4012,
-                    4013
-                ],
-                'mockup_style_ids' => [
-                    744
-                ],
-            ],
-        ];
+        $productMap = $this->getProductMap();
 
         $params = new ApiMockupGeneratorParams();
 
@@ -62,5 +85,73 @@ class MockupGeneratorService
     public function getGeneratorTaskById(int $generatorTaskId): ?ApiMockupGeneratorTask
     {
         return $this->api->getGeneratorTaskById($generatorTaskId);
+    }
+
+    /**
+     * @param int[] $taskIds
+     * @return ApiMockupGeneratorTask[]
+     */
+    public function getGeneratorTasksByIds(array $taskIds): array
+    {
+        return $this->api->getGeneratorTasksByIds($taskIds);
+    }
+
+    /**
+     * @param ApiMockupGeneratorTask[] $generatorTasks
+     * @param int $userId
+     * @param string $fileUrl
+     * @return void
+     */
+    public function processCompletedGeneratorTasks(
+        array $generatorTasks,
+        int $userId,
+        string $fileUrl
+    ): void {
+        Telegram::sendMessage(
+            [
+                'chat_id' => $userId,
+                'text' => 'Mockups are finished! ' . CreateProductCommand::TEXT_SELECT_PRODUCTS,
+            ]
+        );
+
+        foreach ($generatorTasks as $generatorTask) {
+            foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
+                $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
+                if (!$product) {
+                    continue;
+                }
+
+                Telegram::sendMessage(
+                    [
+                        'chat_id' => $userId,
+                        'text' => $product['name'] . '(ID:' . $product['id']  . ')',
+                    ]
+                );
+
+                foreach ($catalogVariantMockup['mockups'] as $mockup) {
+                    Telegram::sendPhoto([
+                        'chat_id' => $userId,
+                        'photo' => InputFile::create($mockup),
+                    ]);
+                }
+            }
+        }
+
+        $this->userStateService->setUserState(
+            $userId,
+            CreateProductCommand::COMMAND_CREATE_PRODUCT,
+            CreateProductCommand::STATE_WAITING_PRODUCT_SELECTION
+        );
+    }
+
+    protected function findProductByVariantId(int $variantId): array
+    {
+        foreach ($this->getProductMap() as $product) {
+            if (in_array($variantId, $product['variant_ids'])) {
+                return $product;
+            }
+        }
+
+        return [];
     }
 }

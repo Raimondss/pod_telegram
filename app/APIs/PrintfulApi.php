@@ -42,5 +42,24 @@ class PrintfulApi
 
         return $taskData ? ApiMockupGeneratorTask::fromArray($taskData) : null;
     }
+
+    /**
+     * @param array $ids
+     * @return ApiMockupGeneratorTask[]
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function getGeneratorTasksByIds(array $ids): array
+    {
+        $response = $this->client->get(
+            '/v2/mockup-tasks',
+            ['id' => $ids]
+        );
+
+        return array_map(
+            static fn (array $data): ApiMockupGeneratorTask => ApiMockupGeneratorTask::fromArray($data),
+            $response['data']
+        );
+    }
 }
 
