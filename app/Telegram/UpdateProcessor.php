@@ -13,6 +13,7 @@ use App\Telegram\FlowProcessors\ManageStoresFlowProcessor;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
 use App\Telegram\FlowProcessors\SuccessfulPaymentProcessor;
 use App\Telegram\Structures\UserState;
+use App\Users\Services\TelegramUserService;
 use Exception;
 use Telegram\Bot\Objects\Update;
 
@@ -46,18 +47,20 @@ class UpdateProcessor
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
-        self::COMMAND_CREATE_STORE => self::CREATE_STORE_FLOW_KEY,
-        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
+//        self::COMMAND_CREATE_STORE => self::CREATE_STORE_FLOW_KEY,
+//        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
     ];
 
-    public function __construct(private UserStateService $userStateService) {}
+    public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
 
     /**
      * @throws Exception
      */
     public function processUpdate(Update $update): UserState
     {
+        //Just so we create user in DB
+        $this->telegramUserService->findOrCreateUserFromUpdate($update);
         dump($update);
         $state = $this->getCurrentState($update);
 

@@ -23,11 +23,11 @@ class ProductCardMessageHelper
                     ]
                 ],
                 'photo_url' => $variant->mockup_url,
-                'provider_token' => "2051251535:TEST:OTk5MDA4ODgxLTAwNQ",
+                'provider_token' => env("PAYMENT_TOKEN"),
                 'currency' => 'USD',
                 'title' => $variant->getDisplayTitle(),
                 'description' => $variant->getDisplayTitle(),
-                'payload' => "payload",
+                'payload' => $variantId,
                 'need_shipping_address' => true,
                 'need_email' => true,
             ]

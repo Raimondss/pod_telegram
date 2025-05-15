@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
- *
+ * 
  *
  * @property int $id
  * @property int $telegram_user_product_id

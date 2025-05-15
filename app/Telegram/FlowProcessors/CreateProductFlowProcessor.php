@@ -7,12 +7,15 @@ namespace App\Telegram\FlowProcessors;
 use App\Models\TelegramUserProduct;
 use App\Models\TelegramUserVariant;
 use App\Telegram\Structures\UserState;
+use App\Users\Services\TelegramUserService;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Objects\Update;
 
 class CreateProductFlowProcessor implements FlowProcessorInterface
 {
     public const STEP_WAITING_IMAGE = 'waiting_image';
+
+    public const STEP_WAITING_STORE_NAME = 'waiting_store_name';
 
     public const STEP_WAITING_PRODUCT_NAME = 'waiting_product_name';
 
@@ -23,14 +26,40 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
     const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin %?';
 
+    public function __construct(private TelegramUserService $telegramUserService) {}
+
     public function processUserState(UserState $previousState, Update $update): UserState
     {
+        $user = $this->telegramUserService->findOrCreateUserFromUpdate($update);
+
+        var_dump($user->store_name);
+        //If user has no store name yet - ask to provide one
+        if (!$user->store_name && !$previousState->previousStepKey) {
+            $this->sendMessage($previousState->userId, "You have no store created, lets change that, how would you like to call your store?");
+
+            $previousState->previousStepKey = self::STEP_WAITING_STORE_NAME;
+
+            return $previousState;
+        }
+
+        if ($previousState->previousStepKey == self::STEP_WAITING_STORE_NAME) {
+            $storeName = $update->getMessage()->text ?? null;
+            $user->store_name = $storeName;
+            $user->save();
+
+            $this->sendMessage($previousState->userId, "Store created! - Users will be able to open your store and pruchase products!");
+            $this->sendMessage($previousState->userId, "Lets continue with product creation!");
+
+            $previousState->previousStepKey = null;
+        }
+
         if (!$previousState->previousStepKey) {
             $this->sendMessage($previousState->userId, self::REQUEST_PRODUCT_NAME_TEXT);
             $previousState->previousStepKey = self::STEP_WAITING_PRODUCT_NAME;
 
             return $previousState;
         }
+
 
         if ($previousState->previousStepKey === self::STEP_WAITING_PRODUCT_NAME) {
             $productName = $update->getMessage()->text ?? null;
@@ -51,7 +80,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 return $previousState;
             }
 
-            $previousState->extra['profit_margin'] = (int) $profitMargin;
+            $previousState->extra['profit_margin'] = (int)$profitMargin;
 
             $this->sendMessage($previousState->userId, self::REQUEST_IMAGES_TEXT);
             $previousState->previousStepKey = self::STEP_WAITING_IMAGE;

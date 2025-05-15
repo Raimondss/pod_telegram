@@ -18,7 +18,6 @@ class CheckoutFlowProcessor implements FlowProcessorInterface
     public function processUserState(UserState $previousState, Update $update): UserState
     {
         if (!$previousState->previousStepKey) {
-
             $previousState->previousStepKey = self::STEP_WAITING_STORE_SELECTION;
         }
 
