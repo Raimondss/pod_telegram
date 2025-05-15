@@ -29,7 +29,7 @@ class ProcessGenerateMockupsJob implements ShouldQueue
      */
     public function __construct(
         private int $productId,
-        private array $taskIds
+        private int $taskId
     ) {}
 
     /**
@@ -40,20 +40,18 @@ class ProcessGenerateMockupsJob implements ShouldQueue
         /** @var MockupGeneratorService $mockupGeneratorService */
         $mockupGeneratorService = app()->make(MockupGeneratorService::class);
 
-        $tasks = $mockupGeneratorService->getGeneratorTasksByIds($this->taskIds);
+        $task = $mockupGeneratorService->getGeneratorTaskById($this->taskId);
 
-        if (!$this->areAllTasksCompleted($tasks)) {
-            $statuses = array_map(static fn (ApiMockupGeneratorTask $task) => $task->status, $tasks);
-
-            Log::info('Not all tasks are completed(' . implode(',', $statuses) . '). Putting back in queue...');
+        if (!$task->isComplete()) {
+            Log::info('Task is not completed(Status: ' . $task->status . '). Putting back in queue...');
             $this->release(self::RELEASE_DELAY_SECONDS);
             return;
         }
 
         Log::info('All tasks are completed. Processing...');
 
-        $mockupGeneratorService->processCompletedGeneratorTasks(
-            $tasks,
+        $mockupGeneratorService->processCompletedGeneratorTask(
+            $task,
             $this->productId
         );
     }

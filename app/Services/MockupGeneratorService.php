@@ -92,10 +92,10 @@ class MockupGeneratorService
 
     /**
      * @param string $url
-     * @return ApiMockupGeneratorTask[]
+     * @return ApiMockupGeneratorTask
      * @throws Exception
      */
-    public function generateMockupsForVariants(int $productId, array $variantIds, string $url): array
+    public function generateMockupsForVariants(int $productId, array $variantIds, string $url): ApiMockupGeneratorTask
     {
         $params = new ApiMockupGeneratorParams();
 
@@ -122,7 +122,7 @@ class MockupGeneratorService
 
         $params->products[] = $productParams;
 
-        return $this->api->generateMockups($params);
+        return $this->api->generateMockups($params)[0];
     }
 
     public function getGeneratorTaskById(int $generatorTaskId): ?ApiMockupGeneratorTask
@@ -130,22 +130,8 @@ class MockupGeneratorService
         return $this->api->getGeneratorTaskById($generatorTaskId);
     }
 
-    /**
-     * @param int[] $taskIds
-     * @return ApiMockupGeneratorTask[]
-     */
-    public function getGeneratorTasksByIds(array $taskIds): array
-    {
-        return $this->api->getGeneratorTasksByIds($taskIds);
-    }
-
-    /**
-     * @param ApiMockupGeneratorTask[] $generatorTasks
-     * @param int $productId
-     * @return void
-     */
-    public function processCompletedGeneratorTasks(
-        array  $generatorTasks,
+    public function processCompletedGeneratorTask(
+        ApiMockupGeneratorTask $generatorTask,
         int    $productId,
     ): void {
         $product = TelegramUserProduct::find($productId);
@@ -162,29 +148,27 @@ class MockupGeneratorService
             ]
         );
 
-        foreach ($generatorTasks as $generatorTask) {
-            foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
+        foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
 
-                $variant = TelegramUserVariant::where([
-                    'telegram_user_product_id' => $productId,
-                    'variant_id' => $catalogVariantMockup['catalog_variant_id'],
-                ])->first();
+            $variant = TelegramUserVariant::where([
+                'telegram_user_product_id' => $productId,
+                'variant_id' => $catalogVariantMockup['catalog_variant_id'],
+            ])->first();
 
-                if (!$variant) {
-                    continue;
-                }
-
-                $variant->mockup_url = $catalogVariantMockup['mockups'][0]['mockup_url'];
-                $variant->status = TelegramUserVariant::STATUS_READY;
-                $variant->save();
-
-                Telegram::sendMessage(
-                    [
-                        'chat_id' => $product->telegram_user_id,
-                        'text' => $product['title'] . '(ID:' . $product['id'] . ')',
-                    ]
-                );
+            if (!$variant) {
+                continue;
             }
+
+            $variant->mockup_url = $catalogVariantMockup['mockups'][0]['mockup_url'];
+            $variant->status = TelegramUserVariant::STATUS_READY;
+            $variant->save();
+
+            Telegram::sendPhoto(
+                [
+                    'chat_id' => $product->telegram_user_id,
+                    'photo' => InputFile::create($variant->mockup_url),
+                ]
+            );
         }
     }
 }

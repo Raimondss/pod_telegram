@@ -16,6 +16,7 @@ class GenerateProducts extends Command
     public function __construct(
       private MockupGeneratorService $mockupGeneratorService,
     ) {
+        parent::__construct();
     }
 
     /**
@@ -37,7 +38,7 @@ class GenerateProducts extends Command
      */
     public function handle()
     {
-        $pendingProducts = TelegramUserProduct::where(['status', TelegramUserProduct::STATUS_PENDING])->limit(self::BATCH_SIZE)->get();
+        $pendingProducts = TelegramUserProduct::where(['status' => TelegramUserProduct::STATUS_PENDING])->limit(self::BATCH_SIZE)->get();
 
         Log::info('Products up for processing: ' . $pendingProducts->count());
 
@@ -45,18 +46,28 @@ class GenerateProducts extends Command
 
             Log::info('Creating a task for: ' . $pendingProduct->id);
 
-            $pendingVariants = TelegramUserVariant::where(['status', TelegramUserProduct::STATUS_PENDING, 'telegram_user_product_id' => $pendingProduct->id])->get();
+            $pendingVariants = TelegramUserVariant::where([
+                'status' => TelegramUserProduct::STATUS_PENDING,
+                'telegram_user_product_id' => $pendingProduct->id
+            ])->get();
 
-            $tasks = $this->mockupGeneratorService->generateMockupsForVariants(
+            $task = $this->mockupGeneratorService->generateMockupsForVariants(
                 $pendingProduct->product_id,
                 $pendingVariants->pluck('variant_id')->toArray(),
                 $pendingProduct->uploaded_file_url,
             );
+
+            foreach ($pendingVariants as $pendingVariant) {
+                $pendingVariant->status = TelegramUserVariant::STATUS_PROCESSING;
+                $pendingVariant->save();
+            }
+
             Log::info('Task created');
 
-            $taskIds = array_map(static fn ($task) => $task['id'], $tasks);
+            $pendingProduct->status = TelegramUserProduct::STATUS_PROCESSING;
+            $pendingProduct->save();
 
-            ProcessGenerateMockupsJob::dispatch($pendingProduct->id, $taskIds);
+            ProcessGenerateMockupsJob::dispatch($pendingProduct->id, $task->id);
         }
     }
 }
