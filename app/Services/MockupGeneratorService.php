@@ -171,6 +171,7 @@ class MockupGeneratorService
             );
         }
 
+        Log::info('Finished mockup processing for "' . $product->design_name . '"!');
         $product->status = TelegramUserProduct::STATUS_READY;
         $product->save();
     }
