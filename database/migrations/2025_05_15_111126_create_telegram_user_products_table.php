@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('uploaded_file_url');
             $table->string('design_name');
             $table->integer('product_id');
+            $table->integer('category');
             $table->timestamps();
         });
     }

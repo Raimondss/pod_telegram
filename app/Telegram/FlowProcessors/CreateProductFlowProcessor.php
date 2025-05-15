@@ -6,6 +6,7 @@ namespace App\Telegram\FlowProcessors;
 
 use App\Models\TelegramUserProduct;
 use App\Models\TelegramUserVariant;
+use App\Telegram\Structures\ProductConfig;
 use App\Telegram\Structures\UserState;
 use App\Users\Services\TelegramUserService;
 use Telegram\Bot\Laravel\Facades\Telegram;
@@ -136,6 +137,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 'design_name' => $userProductName,
                 'uploaded_file_url' => $imageUrl,
                 'status' => TelegramUserVariant::STATUS_PENDING,
+                'category' => $productData['category'],
             ]);
         }
 
@@ -165,9 +167,10 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
     protected function getGeneratedProductsMap(): array
     {
         return [
-            71 => [ // bella canvas
+            ProductConfig::CATEGORY_T_SHIRT_BELLA_CANVAS => [ // bella canvas
                 'id' => 71,
                 'name_prefix' => 'Shirt',
+                'category' => ProductConfig::CATEGORY_T_SHIRT_BELLA_CANVAS,
                 'variants' => [
                     [
                         'id' => 4011,
@@ -189,9 +192,10 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                     ],
                 ],
             ],
-            19 => [ // Glossy mug
+            ProductConfig::CATEGORY_MUG_GLOSSY_MUG => [ // Glossy mug
                 'id' => 19,
                 'name_prefix' => 'Glossy Mug',
+                'category' => ProductConfig::CATEGORY_MUG_GLOSSY_MUG,
                 'variants' => [
                     [
                         'id' => 1320,

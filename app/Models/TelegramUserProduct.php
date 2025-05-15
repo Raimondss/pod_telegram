@@ -4,9 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $telegram_user_id
@@ -37,7 +38,8 @@ class TelegramUserProduct extends Model
         'status',
         'uploaded_file_url',
         'design_name',
-        'product_id'
+        'product_id',
+        'category',
     ];
 
     public const string STATUS_PENDING = 'pending';
@@ -46,4 +48,9 @@ class TelegramUserProduct extends Model
     public const string STATUS_ERROR = 'error';
 
     use HasFactory;
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(TelegramUserVariant::class, 'telegram_user_product_id');
+    }
 }

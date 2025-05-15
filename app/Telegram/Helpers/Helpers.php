@@ -15,6 +15,12 @@ class Helpers
         return "https://t.me/" . $botUsername . "?start=buy_product_" . $variantId;
     }
 
+    public static function getBrowseStoreLink(int $storeOwnerUserId): string
+    {
+        $botUsername = env('BOT_USERNAME');
+        return "https://t.me/" . $botUsername . "?start=browse_products" . $storeOwnerUserId;
+    }
+
     public static function sendMessage(int $chatId, string $text): void
     {
         Telegram::sendMessage([
