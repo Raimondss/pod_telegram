@@ -6,6 +6,7 @@ namespace App\APIs;
 
 use App\Clients\PrintfulApiClient;
 use App\Params\ApiMockupGeneratorParams;
+use App\Structures\Api\ApiMockupGeneratorTask;
 
 class PrintfulApi
 {
@@ -13,26 +14,33 @@ class PrintfulApi
     {
     }
 
+    /**
+     * @param ApiMockupGeneratorParams $params
+     * @return ApiMockupGeneratorTask[]
+     */
     public function generateMockups(ApiMockupGeneratorParams $params): array
     {
-        var_dump(json_encode($params->toArray(), JSON_PRETTY_PRINT));
-
         $response = $this->client->post(
             '/v2/mockup-tasks',
             $params->toArray(),
         );
 
-        return $response['data'] ?? [];
+        return array_map(
+            static fn (array $data): ApiMockupGeneratorTask => ApiMockupGeneratorTask::fromArray($data),
+            $response['data'] ?? []
+        );
     }
 
-    public function getGeneratorTaskById(int $id): array
+    public function getGeneratorTaskById(int $id): ?ApiMockupGeneratorTask
     {
         $response = $this->client->get(
             '/v2/mockup-tasks',
             ['id' => $id]
         );
 
-        return $response['data'] ?? [];
+        $taskData = $response['data'][0] ?? [];
+
+        return $taskData ? ApiMockupGeneratorTask::fromArray($taskData) : null;
     }
 }
 

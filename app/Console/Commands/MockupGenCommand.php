@@ -69,11 +69,14 @@ class MockupGenCommand extends Command
 
                         sleep(1);
 
-                        $taskResult = $this->mockupGeneratorService->getGeneratorTask($task['id']);
+                        $taskResult = $this->mockupGeneratorService->getGeneratorTaskById($task->id);
+                        if (!$taskResult) {
+                            break;
+                        }
 
-                        if ($taskResult['status'] === 'completed') {
+                        if ($taskResult->isComplete()) {
 
-                            foreach ($taskResult['catalog_variant_mockups'] as $catalogVariant) {
+                            foreach ($taskResult->catalogVariantMockups as $catalogVariant) {
                                 $mockups = [];
                                 foreach ($catalogVariant['mockups'] as $mockup) {
                                     $mockups[] = $mockup['mockup_url'];

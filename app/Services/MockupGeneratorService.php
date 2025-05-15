@@ -9,6 +9,7 @@ use App\Params\ApiMockupGeneratorParams;
 use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
+use App\Structures\Api\ApiMockupGeneratorTask;
 
 class MockupGeneratorService
 {
@@ -16,6 +17,10 @@ class MockupGeneratorService
     {
     }
 
+    /**
+     * @param string $url
+     * @return ApiMockupGeneratorTask[]
+     */
     public function generateMockupsByUrl(string $url): array
     {
         $productMap = [
@@ -54,10 +59,8 @@ class MockupGeneratorService
         return $this->api->generateMockups($params);
     }
 
-    public function getGeneratorTask(int $generatorTaskId): array
+    public function getGeneratorTaskById(int $generatorTaskId): ?ApiMockupGeneratorTask
     {
-        $results = $this->api->getGeneratorTaskById($generatorTaskId);
-
-        return $results[0] ?? [];
+        return $this->api->getGeneratorTaskById($generatorTaskId);
     }
 }
