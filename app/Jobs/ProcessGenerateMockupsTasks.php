@@ -9,12 +9,16 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Log;
 
 class ProcessGenerateMockupsTasks implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private const RELEASE_DELAY_SECONDS = 60;
+    private const RELEASE_DELAY_SECONDS = 1; // TODO increase for production
+
+    public int $tries = 100; // max 100 attempts
+
 
     /**
      * Create a new job instance.
@@ -22,28 +26,44 @@ class ProcessGenerateMockupsTasks implements ShouldQueue
     public function __construct(
         private int $userId,
         private string $fileUrl,
-        private array $taskIds,
-        private MockupGeneratorService $mockupGeneratorService
-    ) {
-    }
+        private array $taskIds
+    ) {}
 
     /**
      * Execute the job.
      */
     public function handle(): void
     {
-        $tasks = $this->mockupGeneratorService->getGeneratorTasksByIds($this->taskIds);
+        /** @var MockupGeneratorService $mockupGeneratorService */
+        $mockupGeneratorService = app()->make(MockupGeneratorService::class);
+
+        $tasks = $mockupGeneratorService->getGeneratorTasksByIds($this->taskIds);
 
         if (!$this->areAllTasksCompleted($tasks)) {
+            $statuses = array_map(fn (ApiMockupGeneratorTask $task) => $task->status, $tasks);
+
+            Log::info('Not all tasks are completed(' . implode(',', $statuses) . '). Putting back in queue...');
             $this->release(self::RELEASE_DELAY_SECONDS);
             return;
         }
 
-        $this->mockupGeneratorService->processCompletedGeneratorTasks(
+        Log::info('All tasks are completed. Processing...');
+
+        $mockupGeneratorService->processCompletedGeneratorTasks(
             $tasks,
             $this->userId,
             $this->fileUrl
         );
+    }
+
+    public function failed(\Throwable $exception): void
+    {
+        Log::error("Job failed: " . $exception->getMessage(), [
+            'exception' => $exception,
+            'userId' => $this->userId,
+            'fileUrl' => $this->fileUrl,
+            'taskIds' => $this->taskIds,
+        ]);
     }
 
     /**

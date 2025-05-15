@@ -53,7 +53,7 @@ class PrintfulApi
     {
         $response = $this->client->get(
             '/v2/mockup-tasks',
-            ['id' => $ids]
+            ['id' => implode(',', $ids)]
         );
 
         return array_map(

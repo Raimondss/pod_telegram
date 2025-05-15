@@ -12,7 +12,7 @@ class ApiMockupGeneratorTask
 
     public function isComplete(): bool
     {
-        return $this->status === 'complete';
+        return $this->status === 'completed';
     }
 
     public static function fromArray(array $data): self

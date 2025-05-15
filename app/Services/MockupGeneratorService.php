@@ -47,6 +47,8 @@ class MockupGeneratorService
                 'mockup_style_ids' => [
                     10421
                 ],
+                'placement' => 'default',
+                'technique' => 'sublimation',
             ],
         ];
     }
@@ -68,6 +70,8 @@ class MockupGeneratorService
             $productParams->mockupStyleIds = $variantData['mockup_style_ids'];
 
             $placements = new ApiMockupGeneratorProductPlacementParams();
+            $placements->placement = $variantData['placement'] ?? $placements->placement;
+            $placements->technique = $variantData['technique'] ?? $placements->technique;
 
             $layer = new ApiMockupGeneratorProductPlacementLayerParams();
             $layer->url = $url;
@@ -147,7 +151,7 @@ class MockupGeneratorService
     protected function findProductByVariantId(int $variantId): array
     {
         foreach ($this->getProductMap() as $product) {
-            if (in_array($variantId, $product['variant_ids'])) {
+            if (in_array($variantId, $product['variant_ids'], true)) {
                 return $product;
             }
         }
