@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('telegram_user_variants', function (Blueprint $table) {
             $table->id();
             $table->foreignId('telegram_user_product_id');
-            $table->string('status');
+            $table->string('status')->index();
             $table->integer('variant_id');
             $table->string('color');
             $table->string('size');

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $telegram_user_id
@@ -31,5 +31,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TelegramUserProduct extends Model
 {
+    public const string STATUS_PENDING = 'pending';
+    public const string STATUS_READY = 'ready';
+    public const string STATUS_ERROR = 'error';
+
     use HasFactory;
 }
