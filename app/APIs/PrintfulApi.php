@@ -28,6 +28,7 @@ class PrintfulApi
             [
                 'recipient' => [
                     'name' => $order->name,
+                    'country' => $order->country_code,
                     'state_code' => $order->state,
                     'city' => $order->city,
                     'zip' => $order->post_code,
@@ -39,7 +40,9 @@ class PrintfulApi
                     [
                         'variant_id' => $variant->variant_id,
                         'files' => [
-                            'url' => $product->uploaded_file_url
+                            [
+                                'url' => $product->uploaded_file_url
+                            ]
                         ]
                     ]
                 ]
