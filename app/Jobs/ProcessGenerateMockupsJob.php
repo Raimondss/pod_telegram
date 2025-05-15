@@ -11,7 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Log;
 
-class ProcessGenerateMockupsTasks implements ShouldQueue
+class ProcessGenerateMockupsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -28,9 +28,8 @@ class ProcessGenerateMockupsTasks implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        private int $userId,
-        private string $fileUrl,
-        private array $taskIds
+        private int $productId,
+        private int $taskId
     ) {}
 
     /**
@@ -41,22 +40,19 @@ class ProcessGenerateMockupsTasks implements ShouldQueue
         /** @var MockupGeneratorService $mockupGeneratorService */
         $mockupGeneratorService = app()->make(MockupGeneratorService::class);
 
-        $tasks = $mockupGeneratorService->getGeneratorTasksByIds($this->taskIds);
+        $task = $mockupGeneratorService->getGeneratorTaskById($this->taskId);
 
-        if (!$this->areAllTasksCompleted($tasks)) {
-            $statuses = array_map(fn (ApiMockupGeneratorTask $task) => $task->status, $tasks);
-
-            Log::info('Not all tasks are completed(' . implode(',', $statuses) . '). Putting back in queue...');
+        if (!$task->isComplete()) {
+            Log::info('Task is not completed(Status: ' . $task->status . '). Putting back in queue...');
             $this->release(self::RELEASE_DELAY_SECONDS);
             return;
         }
 
         Log::info('All tasks are completed. Processing...');
 
-        $mockupGeneratorService->processCompletedGeneratorTasks(
-            $tasks,
-            $this->userId,
-            $this->fileUrl
+        $mockupGeneratorService->processCompletedGeneratorTask(
+            $task,
+            $this->productId
         );
     }
 

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\APIs\PrintfulApi;
+use App\Models\TelegramUserProduct;
+use App\Models\TelegramUserVariant;
 use App\Params\ApiMockupGeneratorParams;
 use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
@@ -13,6 +15,8 @@ use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\FlowProcessors\AddProductToStoreFlowProcessor;
 use App\Telegram\UpdateProcessor;
 use App\Telegram\UserStateService;
+use Exception;
+use Log;
 use Telegram;
 use Telegram\Bot\FileUpload\InputFile;
 
@@ -86,103 +90,85 @@ class MockupGeneratorService
         return $this->api->generateMockups($params);
     }
 
+    /**
+     * @param string $url
+     * @return ApiMockupGeneratorTask
+     * @throws Exception
+     */
+    public function generateMockupsForVariants(int $productId, array $variantIds, string $url): ApiMockupGeneratorTask
+    {
+        $params = new ApiMockupGeneratorParams();
+
+        $productData = $this->getProductMap()[$productId] ?? null;
+        if (!$productData) {
+            throw new Exception('Failed to schedule generator task for product ' . $productId);
+        }
+
+        $productParams = new ApiMockupGeneratorProductParams();
+        $productParams->catalogProductId = $productId;
+        $productParams->catalogVariantIds = $variantIds;
+        $productParams->mockupStyleIds = $productData['mockup_style_ids'];
+
+        $placements = new ApiMockupGeneratorProductPlacementParams();
+        $placements->placement = $productData['placement'] ?? $placements->placement;
+        $placements->technique = $productData['technique'] ?? $placements->technique;
+
+        $layer = new ApiMockupGeneratorProductPlacementLayerParams();
+        $layer->url = $url;
+
+        $placements->layers[] = $layer;
+
+        $productParams->placements[] = $placements;
+
+        $params->products[] = $productParams;
+
+        return $this->api->generateMockups($params)[0];
+    }
+
     public function getGeneratorTaskById(int $generatorTaskId): ?ApiMockupGeneratorTask
     {
         return $this->api->getGeneratorTaskById($generatorTaskId);
     }
 
-    /**
-     * @param int[] $taskIds
-     * @return ApiMockupGeneratorTask[]
-     */
-    public function getGeneratorTasksByIds(array $taskIds): array
-    {
-        return $this->api->getGeneratorTasksByIds($taskIds);
-    }
+    public function processCompletedGeneratorTask(
+        ApiMockupGeneratorTask $generatorTask,
+        int    $productId,
+    ): void {
+        $product = TelegramUserProduct::find($productId);
 
-    /**
-     * @param ApiMockupGeneratorTask[] $generatorTasks
-     * @param int $userId
-     * @param string $fileUrl
-     * @return void
-     */
-    public function processCompletedGeneratorTasks(
-        array  $generatorTasks,
-        int    $userId,
-        string $fileUrl
-    ): void
-    {
-        Telegram::sendMessage(
-            [
-                'chat_id' => $userId,
-                'text' => 'Mockups are finished!',
-            ]
-        );
-
-        var_dump($generatorTasks);
-
-        foreach ($generatorTasks as $generatorTask) {
-            Telegram::sendMessage(
-                [
-                    'chat_id' => $userId,
-                    'text' => 'Tasks we have!',
-                ]
-            );
-
-            foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
-                $product = $this->findProductByVariantId($catalogVariantMockup['catalog_variant_id']);
-                if (!$product) {
-                    continue;
-                }
-
-                Telegram::sendMessage(
-                    [
-                        'chat_id' => $userId,
-                        'text' => $product['title'] . '(ID:' . $product['id'] . ')',
-                    ]
-                );
-
-                foreach ($catalogVariantMockup['mockups'] as $mockup) {
-                    Telegram::sendPhoto([
-                        'chat_id' => $userId,
-                        'photo' => InputFile::create($mockup['mockup_url']),
-                    ]);
-                }
-            }
-        }
-
-        Telegram::sendMessage(
-            [
-                'chat_id' => $userId,
-                'text' => 'Mockups usser state!',
-            ]
-        );
-
-        $userState = $this->userStateService->getUserState($userId);
-
-        if ($userState->getStartedFlowKey() != UpdateProcessor::ADD_PRODUCT_TO_STORE_FLOW_KEY) {
-            //Customer already started different flow while waiting
+        if (!$product) {
+            Log::info('Product not found');
             return;
         }
 
-        $userState->previousStepKey = AddProductToStoreFlowProcessor::STATE_WAITING_PRODUCT_SELECTION;
-        /**
-         * @type AddProductToStoreFlowProcessor $storeFlow
-         */
-        $storeFlow = app(AddProductToStoreFlowProcessor::class);
-        $storeFlow->processUserState($userState, new Telegram\Bot\Objects\Update([]));
+        Telegram::sendMessage(
+            [
+                'chat_id' => $product->telegram_user_id,
+                'text' => 'Mockups are finished for "' . $product->design_name . '"!',
+            ]
+        );
 
-        //TODO Resume AddProductToStoreFlowProcessor with new state.
-    }
+        foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
 
-    protected function findProductByVariantId(int $variantId): array
-    {
-        foreach ($this->getProductMap() as $product) {
-            if (in_array($variantId, $product['variant_ids'], true)) {
-                return $product;
+            $variant = TelegramUserVariant::where([
+                'telegram_user_product_id' => $productId,
+                'variant_id' => $catalogVariantMockup['catalog_variant_id'],
+            ])->first();
+
+            if (!$variant) {
+                continue;
             }
-        }
 
-        return [];
+            $variant->mockup_url = $catalogVariantMockup['mockups'][0]['mockup_url'];
+            $variant->status = TelegramUserVariant::STATUS_READY;
+            $variant->save();
+
+            Telegram::sendPhoto(
+                [
+                    'chat_id' => $product->telegram_user_id,
+                    'photo' => InputFile::create($variant->mockup_url),
+                ]
+            );
+        }
     }
 }

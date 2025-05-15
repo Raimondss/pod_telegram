@@ -48,6 +48,7 @@ class TelegramUserVariant extends Model
     ];
 
     public const string STATUS_PENDING = 'pending';
+    public const string STATUS_PROCESSING = 'processing';
     public const string STATUS_READY = 'ready';
     public const string STATUS_ERROR = 'error';
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Telegram\FlowProcessors;
 
-use App\Jobs\ProcessGenerateMockupsTasks;
+use App\Jobs\ProcessGenerateMockupsJob;
 use App\Services\MockupGeneratorService;
 use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\Structures\UserState;
@@ -81,7 +81,7 @@ class AddProductToStoreFlowProcessor implements FlowProcessorInterface
                 $tasks
             );
 
-            ProcessGenerateMockupsTasks::dispatch($previousState->userId, $fileUrl, $taskIds);
+            ProcessGenerateMockupsJob::dispatch($previousState->userId, $fileUrl, $taskIds);
 
             Telegram::sendMessage(
                 [

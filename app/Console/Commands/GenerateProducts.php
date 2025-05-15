@@ -2,10 +2,23 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\ProcessGenerateMockupsJob;
+use App\Models\TelegramUserProduct;
+use App\Models\TelegramUserVariant;
+use App\Services\MockupGeneratorService;
 use Illuminate\Console\Command;
+use Log;
 
 class GenerateProducts extends Command
 {
+    private const BATCH_SIZE = 10;
+
+    public function __construct(
+      private MockupGeneratorService $mockupGeneratorService,
+    ) {
+        parent::__construct();
+    }
+
     /**
      * The name and signature of the console command.
      *
@@ -25,6 +38,36 @@ class GenerateProducts extends Command
      */
     public function handle()
     {
-        echo  "Generating...";
+        $pendingProducts = TelegramUserProduct::where(['status' => TelegramUserProduct::STATUS_PENDING])->limit(self::BATCH_SIZE)->get();
+
+        Log::info('Products up for processing: ' . $pendingProducts->count());
+
+        foreach ($pendingProducts as $pendingProduct) {
+
+            Log::info('Creating a task for: ' . $pendingProduct->id);
+
+            $pendingVariants = TelegramUserVariant::where([
+                'status' => TelegramUserProduct::STATUS_PENDING,
+                'telegram_user_product_id' => $pendingProduct->id
+            ])->get();
+
+            $task = $this->mockupGeneratorService->generateMockupsForVariants(
+                $pendingProduct->product_id,
+                $pendingVariants->pluck('variant_id')->toArray(),
+                $pendingProduct->uploaded_file_url,
+            );
+
+            foreach ($pendingVariants as $pendingVariant) {
+                $pendingVariant->status = TelegramUserVariant::STATUS_PROCESSING;
+                $pendingVariant->save();
+            }
+
+            Log::info('Task created');
+
+            $pendingProduct->status = TelegramUserProduct::STATUS_PROCESSING;
+            $pendingProduct->save();
+
+            ProcessGenerateMockupsJob::dispatch($pendingProduct->id, $task->id);
+        }
     }
 }
