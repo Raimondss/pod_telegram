@@ -170,5 +170,8 @@ class MockupGeneratorService
                 ]
             );
         }
+
+        $product->status = TelegramUserProduct::STATUS_READY;
+        $product->save();
     }
 }

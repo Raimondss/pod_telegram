@@ -110,7 +110,6 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
             ]);
         }
 
-        $telegramUserVaraints = [];
         foreach ($telegramUserProducts as $product) {
             $variantsData = $this->getGeneratedProductsMap()[$product->product_id]['variants'];
 
@@ -120,7 +119,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 $size = $variantData['size'];
                 $basePrice = $variantData['base_price'];
 
-                $telegramUserVaraints[] = [
+                TelegramUserVariant::insert([
                     'telegram_user_product_id' => $product->id,
                     'color' => $color,
                     'variant_id' => $id,
@@ -129,10 +128,8 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                     'price' => $basePrice + ($basePrice * ($marginPercentage / 100)),
                     'created_at' => now(),
                     'updated_at' => now(),
-                ];
+                ]);
             }
-
-            TelegramUserVariant::insert($telegramUserVaraints);
         }
     }
 
