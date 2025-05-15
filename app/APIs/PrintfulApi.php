@@ -57,8 +57,6 @@ class PrintfulApi
             ['id' => implode(',', $ids)]
         );
 
-        Log::info(print_r($response, true));
-
         return array_map(
             static fn (array $data): ApiMockupGeneratorTask => ApiMockupGeneratorTask::fromArray($data),
             $response['data']
