@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * 
+ *
  *
  * @property int $id
  * @property int $telegram_user_id
@@ -30,7 +30,7 @@ class TelegramUser extends Model
     use HasFactory;
 
     protected $fillable = [
-        'telegram_user_id',
+        'id',
     ];
 
     public function stores(): HasMany

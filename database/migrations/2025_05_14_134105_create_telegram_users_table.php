@@ -11,8 +11,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('telegram_users', function (Blueprint $table) {
-            $table->id();
-            $table->bigInteger('telegram_user_id')->unique()->index();
+            $table->bigInteger('id')->unique()->index();
             $table->timestamps();
         });
     }

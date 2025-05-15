@@ -31,6 +31,15 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TelegramUserProduct extends Model
 {
+    protected $fillable = [
+        'status',
+        'telegram_user_id',
+        'status',
+        'uploaded_file_url',
+        'design_name',
+        'product_id'
+    ];
+
     public const string STATUS_PENDING = 'pending';
     public const string STATUS_READY = 'ready';
     public const string STATUS_ERROR = 'error';

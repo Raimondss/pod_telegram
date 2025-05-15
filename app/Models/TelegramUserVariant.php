@@ -35,6 +35,18 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TelegramUserVariant extends Model
 {
+    protected $fillable = [
+        'color',
+        'size',
+        'telegram_user_product_id',
+        'status',
+        'variant_id',
+        'price',
+        'mockup_url',
+        'created_at',
+        'updated_at',
+    ];
+
     public const string STATUS_PENDING = 'pending';
     public const string STATUS_READY = 'ready';
     public const string STATUS_ERROR = 'error';

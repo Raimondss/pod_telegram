@@ -18,7 +18,7 @@ class TelegramUserService
     {
         $telegramUserId = $update->getMessage()->from->id;
 
-        $user = TelegramUser::where('telegram_user_id', $telegramUserId)->first();
+        $user = TelegramUser::where('id', $telegramUserId)->first();
         if ($user) {
             return $user;
         }
@@ -26,7 +26,7 @@ class TelegramUserService
         $lock = Cache::lock('processing-job-lock', 5);
         if ($lock->get()) {
             try {
-                $user = TelegramUser::where('telegram_user_id', $telegramUserId)->first();
+                $user = TelegramUser::where('id', $telegramUserId)->first();
 
                 if ($user) {
                     return $user;
@@ -47,7 +47,7 @@ class TelegramUserService
     {
         $userId = $update->getMessage()->from->id;
         return TelegramUser::create([
-            'telegram_user_id' => $userId,
+            'id' => $userId,
         ]);
     }
 }

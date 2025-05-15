@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Telegram\FlowProcessors;
 
 use App\Models\TelegramUserProduct;
+use App\Models\TelegramUserVariant;
 use App\Telegram\Structures\UserState;
 use Telegram\Bot\Laravel\Facades\Telegram;
 use Telegram\Bot\Objects\Update;
@@ -21,7 +22,6 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
     public const string REQUEST_PRODUCT_NAME_TEXT = 'How would you like to call your product?';
 
     const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin?';
-
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
@@ -51,7 +51,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 return $previousState;
             }
 
-            $previousState->extra['profit_margin'] = $profitMargin;
+            $previousState->extra['profit_margin'] = (int)$profitMargin;
 
             $this->sendMessage($previousState->userId, self::REQUEST_IMAGES_TEXT);
             $previousState->previousStepKey = self::STEP_WAITING_IMAGE;
@@ -68,22 +68,21 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 return $previousState;
             }
 
-            foreach ($photos as $photo) {
-                $file = Telegram::getFile([
-                    'file_id' => $photo->file_id,
-                ]);
+            $largestFileId = $this->getLargestFileId($photos);
 
-                $filePath = $file->getFilePath();
-                $fileUrl = 'https://api.telegram.org/file/bot' . env('TELEGRAM_BOT_TOKEN') . '/' . $filePath;
-                $this->createVariantsFromFileUrl($previousState->userId, $fileUrl, $previousState->extra['']);
-            }
+            dump($photos);
+            $file = Telegram::getFile([
+                'file_id' => $largestFileId,
+            ]);
+
+            $filePath = $file->getFilePath();
+            $fileUrl = 'https://api.telegram.org/file/bot' . env('TELEGRAM_BOT_TOKEN') . '/' . $filePath;
+            $this->createVariantsFromFileUrl($previousState->userId, $fileUrl, $previousState->extra['profit_margin'], $previousState->extra['product_name']);
+
+            return $previousState;
 
             //NO PHOTOS - SEND MESSAGE ASK FOR PHOTOS AGAIN
             //TODO QUEUE PRODUCT CREATION JOB
-        }
-
-        if ($previousState->previousStepKey == self::STEP_SET_PROFIT_MARGIN) {
-            //TODO PROCESS UPDATE AS IT WOULD BE PROFIT MARGIN + MOVE TO NEXT STEP
         }
     }
 
@@ -101,29 +100,38 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
         $telegramUserProducts = [];
         foreach ($map as $productId => $productData) {
-            $namePrefix = $productData['name_prefix'];
-            foreach ($productData['variants'] as $variant) {
-                $id = $variant['id'];
-                $color = $variant['color'];
-                $size = $variant['size'];
-                $basePrice = $variant['base_price'];
-                $telegramUserProducts[] = [
-                    'telegram_user_id' => $userId,
-                    'color' => $color,
-                    'variant_id' => $id,
-                    'product_id' => $productId,
-                    'size' => $size,
-                    'product_name' => $namePrefix . ' ' . $userProductName,
-                    'price' => $basePrice + ($basePrice * $marginPercentage),
-                ];
-            }
+            $telegramUserProducts[] = TelegramUserProduct::create([
+                'telegram_user_id' => $userId,
+                'product_id' => $productId,
+                'design_name' => $userProductName,
+                'uploaded_file_url' => $imageUrl,
+                'status' => TelegramUserVariant::STATUS_PENDING,
+            ]);
         }
 
-        if ($telegramUserProducts !== []) {
-            TelegramUserProduct::insert($telegramUserProducts);
-            dump('Products are saved');
-        } else {
-            dump('No products were created');
+        $telegramUserVaraints = [];
+        foreach ($telegramUserProducts as $product) {
+            $variantsData = $this->getGeneratedProductsMap()[$product->product_id]['variants'];
+
+            foreach ($variantsData as $variantData) {
+                $id = $variantData['id'];
+                $color = $variantData['color'];
+                $size = $variantData['size'];
+                $basePrice = $variantData['base_price'];
+
+                $telegramUserVaraints[] = [
+                    'telegram_user_product_id' => $product->id,
+                    'color' => $color,
+                    'variant_id' => $id,
+                    'size' => $size,
+                    'status' => TelegramUserVariant::STATUS_PENDING,
+                    'price' => $basePrice + ($basePrice * $marginPercentage),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            TelegramUserVariant::insert($telegramUserVaraints);
         }
     }
 
@@ -169,5 +177,19 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
                 'technique' => 'sublimation',
             ],
         ];
+    }
+
+    private function getLargestFileId(array $files): ?string
+    {
+        if (empty($files)) {
+            return null;
+        }
+
+        $largest = array_reduce(
+            $files,
+            static fn($carry, $item) => ($carry === null || $item['file_size'] > $carry['file_size']) ? $item : $carry
+        );
+
+        return $largest['file_id'] ?? null;
     }
 }
