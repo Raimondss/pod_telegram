@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Telegram;
 
 use App\Commands\CommandInterface;
-use App\Commands\CreateProductCommand;
 use App\Commands\CreateStoreCommand;
 use App\Commands\StartCommand;
 use Illuminate\Support\Facades\Cache;
@@ -15,6 +14,7 @@ use Telegram\Bot\Objects\Update;
 
 class MessageProcessor
 {
+
     public function __construct(private UserStateService $userStateService) {}
 
     private const string LAST_PROCESSED_UPDATE_KEY = "LAST_PROCESSED_UPDATE";
@@ -22,13 +22,11 @@ class MessageProcessor
 
     public const COMMAND_MAPPING = [
         '/create_store' => CreateStoreCommand::class,
-        "/start" => StartCommand::class,
-        "/create_product" => CreateProductCommand::class,
+        "/start" => StartCommand::class
     ];
 
     public function run(): void
     {
-        echo $this->getLastProcessedId() . PHP_EOL;
         $updates = Telegram::getUpdates([
             'offset' => $this->getLastProcessedId() + 1,
             'limit' => self::MESSAGE_LIMIT,

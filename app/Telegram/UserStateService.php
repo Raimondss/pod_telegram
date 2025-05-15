@@ -4,24 +4,17 @@ declare(strict_types=1);
 
 namespace App\Telegram;
 
+use App\Telegram\Structures\UserState;
 use Illuminate\Support\Facades\Cache;
 
 class UserStateService
 {
     private const string STATE_CACHE_KEY = 'user_state';
 
-    private const string STATE_SEPARATOR = '@';
-
-    public function getUserState(int $userId): ?array
+    public function getUserState(int $userId): ?UserState
     {
         $key = $this->getCacheKey($userId);
-        $state = Cache::get($key, null);
-
-        if (!$state) {
-            return null;
-        }
-
-        return explode(self::STATE_SEPARATOR, $state);
+        return Cache::get($key);
     }
 
     public function clearUserState(int $userId): void
@@ -29,10 +22,10 @@ class UserStateService
         Cache::forget($this->getCacheKey($userId));
     }
 
-    public function setUserState(int $userId, string $command, string $state): void
+    public function setUserState(UserState $state): void
     {
-        $key = $this->getCacheKey($userId);
-        Cache::set($key, implode(self::STATE_SEPARATOR, [$command, $state]));
+        $key = $this->getCacheKey($state->userId);
+        Cache::set($key, $state);
     }
 
     private function getCacheKey(int $userId): string
