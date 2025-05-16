@@ -94,7 +94,7 @@ class ProductMapRepository
 //                    ],
                 ],
                 'mockup_style_ids' => [
-                    10423¬, // office env
+                    10423, // office env
 //                    10438, // office env
                 ],
                 'placement' => 'default',
