@@ -7,9 +7,9 @@ namespace App\Telegram;
 use App\Telegram\FlowProcessors\BrowseProductsProcessors;
 use App\Telegram\FlowProcessors\BuyProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
-use App\Telegram\FlowProcessors\EmptyFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
+use App\Telegram\FlowProcessors\ShowHelpFlowProcessor;
 use App\Telegram\FlowProcessors\SuccessfulPaymentProcessor;
 use App\Telegram\Structures\UserState;
 use App\Users\Services\TelegramUserService;
@@ -23,15 +23,18 @@ class UpdateProcessor
 
     public const string CHECKOUT_COMPLETE_FLOW = 'checkout_complete_flow';
     public const string SUCCESSFUL_PAYMENT_FLOW = 'successfull_payment_flow';
-
     public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
+    public const string SHOW_HELP_FLOW = 'show_help_flow';
 
     public const string COMMAND_MANAGE_STORE = '/my_products';
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
+    public const string COMMAND_HELP = '/help';
+
+
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
-        null => EmptyFlowProcessor::class,
+        null => ShowHelpFlowProcessor::class,
 //        self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
 //        self::CREATE_STORE_FLOW_KEY => CreateStoreFlowProcessor::class,
 //        self::MANAGE_STORES_FLOW_KEY => ManageStoresFlowProcessor::class,
@@ -39,13 +42,15 @@ class UpdateProcessor
         self::CHECKOUT_COMPLETE_FLOW => PreCheckoutQueryProcessor::class,
         self::SUCCESSFUL_PAYMENT_FLOW => SuccessfulPaymentProcessor::class,
         self::BUY_PRODUCT_FLOW => BuyProductFlowProcessor::class,
-        self::BROWSE_PRODUCTS_FLOW => BrowseProductsProcessors::class
+        self::BROWSE_PRODUCTS_FLOW => BrowseProductsProcessors::class,
+        self::SHOW_HELP_FLOW => ShowHelpFlowProcessor::class,
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
 //        self::COMMAND_CREATE_STORE => self::CREATE_STORE_FLOW_KEY,
 //        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
+        self::COMMAND_HELP => self::SHOW_HELP_FLOW,
     ];
 
     public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
@@ -120,6 +125,10 @@ class UpdateProcessor
 
         $message = $update->getMessage()->text ?? '';
 
+        if ($message === '/start') {
+            return self::SHOW_HELP_FLOW;
+        }
+
         if (str_contains($message, 'buy_product')) {
             return self::BUY_PRODUCT_FLOW;
         }
@@ -156,11 +165,12 @@ class UpdateProcessor
      */
     private function getProcessor(?string $flowKey): FlowProcessorInterface
     {
+        dump($flowKey);
         if ($flowKey) {
             return $this->getMappedProcessor($flowKey);
         }
 
-        return app(EmptyFlowProcessor::class);
+        return app(ShowHelpFlowProcessor::class);
     }
 
     private function getMappedProcessor(?string $flowKey): FlowProcessorInterface
