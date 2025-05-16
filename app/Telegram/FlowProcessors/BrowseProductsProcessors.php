@@ -17,6 +17,7 @@ use Telegram\Bot\Objects\Update;
 class BrowseProductsProcessors implements FlowProcessorInterface
 {
 
+    public const string FLOW_CHECKOUT_DESIGN = 'checkout_design';
     public const string FLOW_WAITING_DESIGN_SELECTION = 'waiting_design_selection';
     public const string FLOW_WAITING_PRODUCT_CATEGORY_SELECTION = 'waiting_category_selection';
     public const string FLOW_WAITING_COLOR_SELECTION = 'waiting_color_selection';
@@ -72,6 +73,34 @@ class BrowseProductsProcessors implements FlowProcessorInterface
 
             $previousState->extra['sentMessageIds'] = $sentMessageIds;
             $previousState->previousStepKey = self::FLOW_WAITING_DESIGN_SELECTION;
+
+            return $previousState;
+        }
+
+        //TODO Extarct into functions.
+        if ($previousState->previousStepKey == self::FLOW_CHECKOUT_DESIGN) {
+            $designName = $previousState->extra['designName'];
+            $categories = $this->getAvailableCategories($previousState->extra['storeOwnerUserId'], $designName);
+
+            $categoryKeyBoards = [];
+            foreach ($categories as $category) {
+                $categoryKeyBoards[] = [
+                    ['text' => $category, 'callback_data' => $category]
+                ];
+            }
+
+            $product = TelegramUserProduct::whereDesignName($designName)->first();
+            $uploadedFile = InputFile::create($product->uploaded_file_url, "design_file");
+
+            Telegram::sendPhoto([
+                'chat_id' => $previousState->userId,
+                'photo' => $uploadedFile,
+                'caption' => $product->design_name,
+                'reply_markup' => json_encode([
+                    'inline_keyboard' => $categoryKeyBoards
+                ])
+            ]);
+            $previousState->previousStepKey = self::FLOW_WAITING_PRODUCT_CATEGORY_SELECTION;
 
             return $previousState;
         }

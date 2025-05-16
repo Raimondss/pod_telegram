@@ -7,7 +7,6 @@ namespace App\Telegram;
 use App\Telegram\FlowProcessors\BrowseProductsProcessors;
 use App\Telegram\FlowProcessors\BuyProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
-use App\Telegram\FlowProcessors\EmptyFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
 use App\Telegram\FlowProcessors\ShowHelpFlowProcessor;
@@ -72,6 +71,21 @@ class UpdateProcessor
             //Clear state and start new flow
             $state = $this->createEmptyState($this->getUpdateUserId($update));
             $state->setFlow($startFlowKey);
+        }
+
+        $message = $update->getMessage()->text ?? '';
+
+        //Checkout specific design
+        if (str_contains($message, '/start checkout_design_')) {
+            $designString = str_replace('/start checkout_design_', '', $message);
+            $data = explode('_', $designString);
+
+            $state = $this->createEmptyState($this->getUpdateUserId($update));
+            $state->setFlow(self::BROWSE_PRODUCTS_FLOW);
+
+            $state->extra['storeOwnerUserId'] = (int)$data[0];
+            $state->extra['designName'] = $data[1];
+            $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
         }
 
         $processor = $this->getProcessor($state->getStartedFlowKey());
