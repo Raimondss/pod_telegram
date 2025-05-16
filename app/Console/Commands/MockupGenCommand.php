@@ -8,6 +8,9 @@ use Illuminate\Console\Command;
 use Telegram\Bot\FileUpload\InputFile;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
+/**
+ * @deprecated
+ */
 class MockupGenCommand extends Command
 {
     public function __construct(

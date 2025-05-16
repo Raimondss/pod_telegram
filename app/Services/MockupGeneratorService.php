@@ -12,6 +12,7 @@ use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
 use App\Structures\Api\ApiMockupGeneratorTask;
+use App\Telegram\Helpers\Helpers;
 use App\Telegram\UserStateService;
 use Exception;
 use Log;
@@ -139,15 +140,7 @@ class MockupGeneratorService
             return;
         }
 
-        Telegram::sendMessage(
-            [
-                'chat_id' => $product->telegram_user_id,
-                'text' => 'Mockups are finished for "' . $product->design_name . '"!',
-            ]
-        );
-
         foreach ($generatorTask->catalogVariantMockups as $catalogVariantMockup) {
-
             $variant = TelegramUserVariant::where([
                 'telegram_user_product_id' => $productId,
                 'variant_id' => $catalogVariantMockup['catalog_variant_id'],
@@ -160,17 +153,29 @@ class MockupGeneratorService
             $variant->mockup_url = $catalogVariantMockup['mockups'][0]['mockup_url'];
             $variant->status = TelegramUserVariant::STATUS_READY;
             $variant->save();
-
-            Telegram::sendPhoto(
-                [
-                    'chat_id' => $product->telegram_user_id,
-                    'photo' => InputFile::create($variant->mockup_url),
-                ]
-            );
         }
 
         Log::info('Finished mockup processing for "' . $product->design_name . '"!');
         $product->status = TelegramUserProduct::STATUS_READY;
         $product->save();
+
+        Telegram::sendMessage([
+            'chat_id' => $product->telegram_user_id,
+            'text' => "Your new design is ready for sale!",
+            'reply_markup' => json_encode([
+                'inline_keyboard' => [
+                    [
+                        [
+                            'text' => '👕 Share new design',
+                            'switch_inline_query' => 'New design available at: ' . Helpers::getCheckoutDesignLink($product->telegram_user_id, $product->design_name),
+                        ],
+                        [
+                            'text' => '🏪 Share all merch',
+                            'switch_inline_query' => 'See my merch at: ' . Helpers::getBrowseStoreLink($product->telegram_user_id),
+                        ],
+                    ]
+                ]
+            ])
+        ]);
     }
 }
