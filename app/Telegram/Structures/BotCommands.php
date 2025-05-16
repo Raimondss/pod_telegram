@@ -10,20 +10,12 @@ final class BotCommands
     {
         return [
             [
-                'command' => '/buy_product',
-                'description' => 'Browse stores and purchase products',
+                'command' => '/help',
+                'description' => 'List all available commands',
             ],
             [
                 'command' => '/create_product',
-                'description' => 'Create product',
-            ],
-            [
-                'command' => '/my_products',
-                'description' => 'My products',
-            ],
-            [
-                'command' => '/help',
-                'description' => 'List all available commands',
+                'description' => 'Create your own product',
             ],
         ];
     }
