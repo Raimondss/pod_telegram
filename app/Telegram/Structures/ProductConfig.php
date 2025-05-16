@@ -17,7 +17,7 @@ class ProductConfig
    public const array CONFIG_CATEGORY_PRODUCT_ID_MAP = [
        self::CATEGORY_NAME_TSHIRT => self::CATEGORY_T_SHIRT_BELLA_CANVAS,
        self::CATEGORY_NAME_MUG => self::CATEGORY_MUG_GLOSSY_MUG,
-       self::CATEGORY_POSTER => self::CATEGORY_NAME_POSTER,
+       self::CATEGORY_NAME_POSTER => self::CATEGORY_POSTER,
    ];
 
    public const array CONFIG_PRODUCT_ID_CATEGORY_MAP = [

@@ -188,6 +188,34 @@ class BrowseProductsProcessors implements FlowProcessorInterface
                 $previousState->extra['category'],
                 $previousState->extra['designName']);
 
+            if (empty($colors)) {
+                $previousState->extra['color'] = "";
+                $category = $previousState->extra['category'];
+                $sizes = $this->getAvailableSizes(
+                    $previousState->extra['storeOwnerUserId'],
+                    $category,
+                    "",
+                    $previousState->extra['designName']);
+
+                $sizeKeyboards = [];
+                foreach ($sizes as $size) {
+                    $sizeKeyboards[] = [
+                        ['text' => "$category $size", 'callback_data' => $size]
+                    ];
+                }
+
+                Telegram::editMessageText([
+                    'chat_id' => $previousState->userId,
+                    'message_id' => $update->getMessage()->message_id,
+                    'text' => "Choose size",
+                    'reply_markup' => json_encode([
+                        'inline_keyboard' => $sizeKeyboards
+                    ])
+                ]);
+
+                $previousState->previousStepKey = self::FLOW_WAITING_SIZE_SELECTION;
+                return $previousState;
+            }
 
             $colorKeyboards = [];
             foreach ($colors as $color) {
@@ -341,6 +369,9 @@ class BrowseProductsProcessors implements FlowProcessorInterface
         $colors = [];
         foreach ($products as $product) {
             foreach ($product->variants as $variant) {
+                if ($variant->color == '') {
+                    continue;
+                }
                 $colors[] = $variant->color;
             }
         }
