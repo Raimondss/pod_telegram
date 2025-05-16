@@ -137,7 +137,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
             $telegramUserProducts[] = TelegramUserProduct::create([
                 'telegram_user_id' => $userId,
                 'product_id' => $productId,
-                'design_name' => $userProductName,
+                'design_name' => str_replace(' ', '-', $userProductName),
                 'uploaded_file_url' => $imageUrl,
                 'status' => TelegramUserVariant::STATUS_PENDING,
                 'category' => $productData['category'],
