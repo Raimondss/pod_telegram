@@ -32,6 +32,6 @@ class Helpers
     public static function getCheckoutDesignLink(int $storeOwnerUserId, string $designName): string
     {
         $botUsername = env('BOT_USERNAME');
-        return "https://t.me/" . $botUsername . "?start=checkout_design_" . $storeOwnerUserId . '_' . urlencode($designName);
+        return "https://t.me/" . $botUsername . "?start=checkout_design_" . $storeOwnerUserId . '_' . $designName;
     }
 }
