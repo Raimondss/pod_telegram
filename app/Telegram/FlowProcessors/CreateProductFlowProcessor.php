@@ -6,6 +6,7 @@ namespace App\Telegram\FlowProcessors;
 
 use App\Models\TelegramUserProduct;
 use App\Models\TelegramUserVariant;
+use App\Repository\ProductMapRepository;
 use App\Telegram\Structures\ProductConfig;
 use App\Telegram\Structures\UserState;
 use App\Users\Services\TelegramUserService;
@@ -27,13 +28,15 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
     const string REQUEST_PROFIT_MARIN_TEXT = 'What should be profit margin %?';
 
-    public function __construct(private TelegramUserService $telegramUserService) {}
+    public function __construct(
+        private TelegramUserService $telegramUserService,
+        private ProductMapRepository $productMapRepository,
+    ) {}
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
         $user = $this->telegramUserService->findOrCreateUserFromUpdate($update);
 
-        var_dump($user->store_name);
         //If user has no store name yet - ask to provide one
         if (!$user->store_name && !$previousState->previousStepKey) {
             $this->sendMessage($previousState->userId, "You have no store created, lets change that, how would you like to call your store?");
@@ -127,7 +130,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
     public function createVariantsFromFileUrl(int $userId, string $imageUrl, int $marginPercentage, string $userProductName): void
     {
-        $map = $this->getGeneratedProductsMap();
+        $map = $this->productMapRepository->getProductMap();
 
         $telegramUserProducts = [];
         foreach ($map as $productId => $productData) {
@@ -142,7 +145,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
         }
 
         foreach ($telegramUserProducts as $product) {
-            $variantsData = $this->getGeneratedProductsMap()[$product->product_id]['variants'];
+            $variantsData = $this->productMapRepository->getProductMapById($product->product_id)['variants'];
 
             foreach ($variantsData as $variantData) {
                 $id = $variantData['id'];

@@ -8,8 +8,7 @@ class ProductConfig
 {
     public const int CATEGORY_T_SHIRT_BELLA_CANVAS = 71;
     public const int CATEGORY_MUG_GLOSSY_MUG = 19;
-
-    public const int CATEGORY_POSTER = 0;
+    public const int CATEGORY_POSTER = 1;
 
     public const CATEGORY_NAME_TSHIRT = 'T-shirt';
     public const CATEGORY_NAME_MUG = 'Mug';
@@ -18,11 +17,13 @@ class ProductConfig
    public const array CONFIG_CATEGORY_PRODUCT_ID_MAP = [
        self::CATEGORY_NAME_TSHIRT => self::CATEGORY_T_SHIRT_BELLA_CANVAS,
        self::CATEGORY_NAME_MUG => self::CATEGORY_MUG_GLOSSY_MUG,
+       self::CATEGORY_POSTER => self::CATEGORY_NAME_POSTER,
    ];
 
    public const array CONFIG_PRODUCT_ID_CATEGORY_MAP = [
        self::CATEGORY_T_SHIRT_BELLA_CANVAS => self::CATEGORY_NAME_TSHIRT,
        self::CATEGORY_MUG_GLOSSY_MUG => self::CATEGORY_NAME_MUG,
+       self::CATEGORY_POSTER => self::CATEGORY_NAME_POSTER,
    ];
 
     public static function getCategoryIdByCategoryName(string $categoryName): ?int

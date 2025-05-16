@@ -11,6 +11,7 @@ use App\Params\ApiMockupGeneratorParams;
 use App\Params\ApiMockupGeneratorProductParams;
 use App\Params\ApiMockupGeneratorProductPlacementLayerParams;
 use App\Params\ApiMockupGeneratorProductPlacementParams;
+use App\Repository\ProductMapRepository;
 use App\Structures\Api\ApiMockupGeneratorTask;
 use App\Telegram\Helpers\Helpers;
 use App\Telegram\UserStateService;
@@ -24,37 +25,8 @@ class MockupGeneratorService
     public function __construct(
         private PrintfulApi      $api,
         private UserStateService $userStateService,
+        private ProductMapRepository $productMapRepository
     ) {}
-
-    protected function getProductMap(): array
-    {
-        return [
-            71 => [ // bella canvas
-                'id' => 71,
-                'title' => 'Bella Canvas',
-                'variant_ids' => [
-                    4011, // White + M
-                    4017, // Black + M
-                    4082 // Gold + M
-                ],
-                'mockup_style_ids' => [
-                    744
-                ],
-            ],
-            19 => [ // Glossy mug
-                'id' => 19,
-                'title' => 'White Glossy Mug',
-                'variant_ids' => [
-                    1320, // 11 oz
-                ],
-                'mockup_style_ids' => [
-                    10423,
-                ],
-                'placement' => 'default',
-                'technique' => 'sublimation',
-            ],
-        ];
-    }
 
     /**
      * @param string $url
@@ -62,14 +34,14 @@ class MockupGeneratorService
      */
     public function generateMockupsByUrl(string $url): array
     {
-        $productMap = $this->getProductMap();
+        $productMap = $this->productMapRepository->getProductMap();
 
         $params = new ApiMockupGeneratorParams();
 
         foreach ($productMap as $productId => $variantData) {
             $productParams = new ApiMockupGeneratorProductParams();
             $productParams->catalogProductId = $productId;
-            $productParams->catalogVariantIds = $variantData['variant_ids'];
+            $productParams->catalogVariantIds = collect($variantData['variants'])->pluck('id')->toArray();
             $productParams->mockupStyleIds = $variantData['mockup_style_ids'];
 
             $placements = new ApiMockupGeneratorProductPlacementParams();
@@ -98,7 +70,7 @@ class MockupGeneratorService
     {
         $params = new ApiMockupGeneratorParams();
 
-        $productData = $this->getProductMap()[$productId] ?? null;
+        $productData = $this->productMapRepository->getProductMapById($productId);
         if (!$productData) {
             throw new Exception('Failed to schedule generator task for product ' . $productId);
         }
