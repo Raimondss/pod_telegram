@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Telegram\Structures\BotCommands;
 use Illuminate\Console\Command;
 use Telegram\Bot\Laravel\Facades\Telegram;
 
@@ -27,20 +28,7 @@ class SetupBotCommand extends Command
     public function handle()
     {
         Telegram::setMyCommands([
-            'commands' => [
-                [
-                    'command' => '/buy_product',
-                    'description' => 'Browse stores and purchase products',
-                ],
-                [
-                    'command' => '/create_product',
-                    'description' => 'Create product',
-                ],
-                [
-                    'command' => '/my_products',
-                    'description' => 'My products',
-                ]
-            ]
+            'commands' => BotCommands::getAllAvailableCommands(),
         ]);
     }
 }
