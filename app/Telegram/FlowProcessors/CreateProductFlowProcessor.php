@@ -167,52 +167,6 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
         }
     }
 
-    protected function getGeneratedProductsMap(): array
-    {
-        return [
-            ProductConfig::CATEGORY_T_SHIRT_BELLA_CANVAS => [ // bella canvas
-                'id' => 71,
-                'name_prefix' => 'Shirt',
-                'category' => ProductConfig::CATEGORY_T_SHIRT_BELLA_CANVAS,
-                'variants' => [
-                    [
-                        'id' => 4011,
-                        'size' => 'M',
-                        'color' => 'White',
-                        'base_price' => 2000
-                    ],
-                    [
-                        'id' => 4017,
-                        'size' => 'M',
-                        'color' => 'Black',
-                        'base_price' => 2000
-                    ],
-                    [
-                        'id' => 4082,
-                        'size' => 'M',
-                        'color' => 'Gold',
-                        'base_price' => 2000
-                    ],
-                ],
-            ],
-            ProductConfig::CATEGORY_MUG_GLOSSY_MUG => [ // Glossy mug
-                'id' => 19,
-                'name_prefix' => 'Glossy Mug',
-                'category' => ProductConfig::CATEGORY_MUG_GLOSSY_MUG,
-                'variants' => [
-                    [
-                        'id' => 1320,
-                        'size' => '11 oz',
-                        'color' => 'White',
-                        'base_price' => 1500
-                    ],
-                ],
-                'placement' => 'default',
-                'technique' => 'sublimation',
-            ],
-        ];
-    }
-
     private function getLargestFileId(array $files): ?string
     {
         if (empty($files)) {
