@@ -30,7 +30,6 @@ class UpdateProcessor
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
-
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
         null => EmptyFlowProcessor::class,
 //        self::ADD_PRODUCT_TO_STORE_FLOW_KEY => AddProductToStoreFlowProcessor::class,
@@ -67,6 +66,21 @@ class UpdateProcessor
             //Clear state and start new flow
             $state = $this->createEmptyState($this->getUpdateUserId($update));
             $state->setFlow($startFlowKey);
+        }
+
+        $message = $update->getMessage()->text ?? '';
+
+        //Checkout specific design
+        if (str_contains($message, '/start checkout_design_')) {
+            $designString = str_replace('/start checkout_design_', '', $message);
+            $data = explode('_', $designString);
+
+            $state = $this->createEmptyState($this->getUpdateUserId($update));
+            $state->setFlow(self::BROWSE_PRODUCTS_FLOW);
+
+            $state->extra['storeOwnerUserId'] = (int)$data[0];
+            $state->extra['designName'] = $data[1];
+            $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
         }
 
         $processor = $this->getProcessor($state->getStartedFlowKey());
