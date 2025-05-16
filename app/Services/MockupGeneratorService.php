@@ -94,11 +94,22 @@ class MockupGeneratorService
             $variant->save();
         }
 
-        Log::info('Finished mockup processing for "' . $product->design_name . '"!');
-        $product->status = TelegramUserProduct::STATUS_READY;
-        $product->save();
+        $notReadyVariantsForProduct = TelegramUserVariant::where([
+            'telegram_user_product_id' => $productId,
+        ])
+            ->whereIn('status', [
+                TelegramUserProduct::STATUS_PENDING,
+                TelegramUserProduct::STATUS_PROCESSING,
+            ])
+            ->get();
 
-        $notReadyProductsForDesign =TelegramUserProduct::where([
+        if ($notReadyVariantsForProduct->isEmpty()) { // all variants are processed for product
+            Log::info('Finished mockup processing for "' . $product->design_name . '"!');
+            $product->status = TelegramUserProduct::STATUS_READY;
+            $product->save();
+        }
+
+        $notReadyProductsForDesign = TelegramUserProduct::where([
             'telegram_user_id' => $product->telegram_user_id,
             'design_name' => $product->design_name,
         ])
