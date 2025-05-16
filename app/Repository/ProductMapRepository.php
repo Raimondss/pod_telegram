@@ -86,9 +86,16 @@ class ProductMapRepository
                         'color' => 'White',
                         'base_price' => 1500
                     ],
+                    [
+                        'id' => 4830,
+                        'size' => '15 oz',
+                        'color' => 'White',
+                        'base_price' => 1500
+                    ],
                 ],
                 'mockup_style_ids' => [
                     10437, // office env
+                    10438, // office env
                 ],
                 'placement' => 'default',
                 'technique' => 'sublimation',
@@ -103,9 +110,14 @@ class ProductMapRepository
                         'size' => '12x18',
                         'base_price' => 1500
                     ],
+                    [
+                        'id' => 6240,
+                        'size' => '14x14',
+                        'base_price' => 1500
+                    ],
                 ],
                 'mockup_style_ids' => [
-                    9116, // office env
+                    9389, // random
                 ],
                 'placement' => 'default',
                 'technique' => 'digital',
