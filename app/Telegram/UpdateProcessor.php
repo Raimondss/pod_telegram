@@ -8,6 +8,7 @@ use App\Telegram\FlowProcessors\BrowseProductsProcessors;
 use App\Telegram\FlowProcessors\BuyProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
+use App\Telegram\FlowProcessors\MyStoreFlowProcessor;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
 use App\Telegram\FlowProcessors\ShowBotWelcomeMessageProcessor;
 use App\Telegram\FlowProcessors\ShowHelpFlowProcessor;
@@ -22,13 +23,14 @@ class UpdateProcessor
     public const string BROWSE_PRODUCTS_FLOW = 'browse_products_flow';
     public const string BUY_PRODUCT_FLOW = 'buy_product_flow';
 
+    public const string MY_STORE_FLOW = 'my_store_flow';
+
     public const string CHECKOUT_COMPLETE_FLOW = 'checkout_complete_flow';
     public const string SUCCESSFUL_PAYMENT_FLOW = 'successfull_payment_flow';
     public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
     public const string SHOW_HELP_FLOW = 'show_help_flow';
     public const string SHOW_BOT_WELCOME_MESSAGE_FLOW = 'show_bot_welcome_message';
 
-    public const string COMMAND_MANAGE_STORE = '/my_products';
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
@@ -51,6 +53,7 @@ class UpdateProcessor
         self::BROWSE_PRODUCTS_FLOW => BrowseProductsProcessors::class,
         self::SHOW_HELP_FLOW => ShowHelpFlowProcessor::class,
         self::SHOW_BOT_WELCOME_MESSAGE_FLOW => ShowBotWelcomeMessageProcessor::class,
+        self::MY_STORE_FLOW => MyStoreFlowProcessor::class
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
@@ -59,6 +62,7 @@ class UpdateProcessor
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
         self::COMMAND_HELP => self::SHOW_HELP_FLOW,
         self::COMMAND_START => self::SHOW_BOT_WELCOME_MESSAGE_FLOW,
+        self::COMMAND_MY_STORE => self::MY_STORE_FLOW,
     ];
 
     public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
@@ -92,7 +96,8 @@ class UpdateProcessor
             $state->setFlow(self::BROWSE_PRODUCTS_FLOW);
 
             $state->extra['storeOwnerUserId'] = (int)$data[0];
-            $state->extra['designName'] = $data[1];
+            $state->extra['designName'] = base64_decode($data[1]);
+            dump($state);
             $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
         }
 
