@@ -96,10 +96,16 @@ class BrowseProductsProcessors implements FlowProcessorInterface
                 'chat_id' => $previousState->userId,
                 'photo' => $uploadedFile,
                 'caption' => $product->design_name,
+            ]);
+
+            Telegram::sendMessage([
+                'chat_id' => $previousState->userId,
+                'text' => "Choose product",
                 'reply_markup' => json_encode([
                     'inline_keyboard' => $categoryKeyBoards
                 ])
             ]);
+
             $previousState->previousStepKey = self::FLOW_WAITING_PRODUCT_CATEGORY_SELECTION;
 
             return $previousState;
@@ -146,10 +152,16 @@ class BrowseProductsProcessors implements FlowProcessorInterface
                 'chat_id' => $previousState->userId,
                 'photo' => $uploadedFile,
                 'caption' => $product->design_name,
+            ]);
+
+            Telegram::sendMessage([
+                'chat_id' => $previousState->userId,
+                'text' => "Choose product!",
                 'reply_markup' => json_encode([
                     'inline_keyboard' => $categoryKeyBoards
                 ])
             ]);
+
             $previousState->previousStepKey = self::FLOW_WAITING_PRODUCT_CATEGORY_SELECTION;
 
             return $previousState;
@@ -180,25 +192,17 @@ class BrowseProductsProcessors implements FlowProcessorInterface
             $colorKeyboards = [];
             foreach ($colors as $color) {
                 $colorKeyboards[] = [
-                    ['text' => $color, 'callback_data' => $color]
+                    ['text' => "$category $color", 'callback_data' => $color]
                 ];
             }
 
-            $product = TelegramUserProduct::whereDesignName($previousState->extra['designName'])->first();
-
-            $uploadedFile = InputFile::create($product->uploaded_file_url, "design_file");
-            Telegram::sendPhoto([
+            Telegram::editMessageText([
                 'chat_id' => $previousState->userId,
-                'photo' => $uploadedFile,
-                'caption' => $product->design_name,
+                'message_id' => $update->getMessage()->message_id,
+                'text' => "Chose color",
                 'reply_markup' => json_encode([
                     'inline_keyboard' => $colorKeyboards
                 ])
-            ]);
-
-            Telegram::deleteMessage([
-                'chat_id' => $previousState->userId,
-                'message_id' => $update->getMessage()->message_id,
             ]);
 
             $previousState->previousStepKey = self::FLOW_WAITING_COLOR_SELECTION;
@@ -222,10 +226,10 @@ class BrowseProductsProcessors implements FlowProcessorInterface
             }
 
             $previousState->extra['color'] = $color;
-
+            $category = $previousState->extra['category'];
             $sizes = $this->getAvailableSizes(
                 $previousState->extra['storeOwnerUserId'],
-                $previousState->extra['category'],
+                $category,
                 $color,
                 $previousState->extra['designName']);
 
@@ -233,25 +237,17 @@ class BrowseProductsProcessors implements FlowProcessorInterface
             $sizeKeyboards = [];
             foreach ($sizes as $size) {
                 $sizeKeyboards[] = [
-                    ['text' => $size, 'callback_data' => $size]
+                    ['text' => "$category $color $size", 'callback_data' => $size]
                 ];
             }
 
-            $product = TelegramUserProduct::whereDesignName($previousState->extra['designName'])->first();
-            $uploadedFile = InputFile::create($product->uploaded_file_url, "design_file");
-
-            Telegram::sendPhoto([
+            Telegram::editMessageText([
                 'chat_id' => $previousState->userId,
-                'photo' => $uploadedFile,
-                'caption' => $product->design_name,
+                'message_id' => $update->getMessage()->message_id,
+                'text' => "Choose size",
                 'reply_markup' => json_encode([
                     'inline_keyboard' => $sizeKeyboards
                 ])
-            ]);
-
-            Telegram::deleteMessage([
-                'chat_id' => $previousState->userId,
-                'message_id' => $update->getMessage()->message_id,
             ]);
 
             $previousState->previousStepKey = self::FLOW_WAITING_SIZE_SELECTION;

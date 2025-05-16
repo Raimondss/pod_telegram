@@ -32,6 +32,8 @@ class UpdateProcessor
 
     public const string COMMAND_HELP = '/help';
 
+    public const string COMMAND_MY_STORE = '/my_store';
+
 
     public const array FLOW_KEY_PROCESSOR_CLASS_MAP = [
         null => ShowHelpFlowProcessor::class,
@@ -83,6 +85,12 @@ class UpdateProcessor
             $state = $this->createEmptyState($this->getUpdateUserId($update));
             $state->setFlow(self::BROWSE_PRODUCTS_FLOW);
 
+            $state->extra['storeOwnerUserId'] = (int)$data[0];
+            $state->extra['designName'] = $data[1];
+            $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
+        }
+
+        if ($message == self::COMMAND_MY_STORE) {
             $state->extra['storeOwnerUserId'] = (int)$data[0];
             $state->extra['designName'] = $data[1];
             $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
