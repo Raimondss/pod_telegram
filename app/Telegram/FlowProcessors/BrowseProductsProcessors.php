@@ -16,19 +16,53 @@ use Telegram\Bot\Objects\Update;
 
 class BrowseProductsProcessors implements FlowProcessorInterface
 {
-
     public const string FLOW_CHECKOUT_DESIGN = 'checkout_design';
     public const string FLOW_WAITING_DESIGN_SELECTION = 'waiting_design_selection';
     public const string FLOW_WAITING_PRODUCT_CATEGORY_SELECTION = 'waiting_category_selection';
     public const string FLOW_WAITING_COLOR_SELECTION = 'waiting_color_selection';
     public const string FLOW_WAITING_SIZE_SELECTION = 'waiting_size_selection';
 
+    public const string FLOW_MY_STORE = 'flow_my_store';
+
     public function __construct(private ProductCardMessageHelper $productCardMessageHelper) {}
 
     public function processUserState(UserState $previousState, Update $update): UserState
     {
-        $message = $update->getMessage()->text ?? '';
+        if ($previousState->previousStepKey == self::FLOW_MY_STORE) {
+            $storeOwnerUserId = $previousState->extra['storeOwnerUserId'];
+            $storeOwnerUser = TelegramUser::whereId($storeOwnerUserId)->first();
 
+            Helpers::sendMessage($previousState->userId, "Welcome to " . $storeOwnerUser->store_name . ' - chose design!');
+
+            $designs = $this->getAvailableDesigns($storeOwnerUserId);
+
+            $sentMessageIds = [];
+            foreach ($designs as $design) {
+                $uploadedFile = InputFile::create($design['image_url'], "design_file");
+
+                $sentMessage = Telegram::sendPhoto([
+                    'chat_id' => $previousState->userId,
+                    'photo' => $uploadedFile,
+                    'caption' => $design['name'],
+                    'reply_markup' => json_encode([
+                        'inline_keyboard' => [
+                            [
+                                ['text' => 'Buy', 'callback_data' => $design['name']]
+                            ]
+                        ]
+                    ])
+                ]);
+
+                $sentMessageIds[] = $sentMessage->messageId;
+            }
+
+            $previousState->extra['sentMessageIds'] = $sentMessageIds;
+            $previousState->previousStepKey = self::FLOW_WAITING_DESIGN_SELECTION;
+
+            return $previousState;
+        }
+
+        $message = $update->getMessage()->text ?? '';
         if (!$previousState->previousStepKey) {
             $browseProductString = explode(" ", $message)[1] ?? null;
 

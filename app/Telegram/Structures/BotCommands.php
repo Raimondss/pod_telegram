@@ -11,11 +11,15 @@ final class BotCommands
         return [
             [
                 'command' => '/help',
-                'description' => 'List all available commands',
+                'description' => 'List all available commands!',
             ],
             [
                 'command' => '/create_product',
-                'description' => 'Create your own product',
+                'description' => 'Create your own product!',
+            ],
+            [
+                'command' => '/my_store',
+                'description' => 'Check out your store!',
             ],
         ];
     }
