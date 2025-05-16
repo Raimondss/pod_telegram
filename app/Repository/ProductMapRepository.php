@@ -117,7 +117,7 @@ class ProductMapRepository
 //                    ],
                 ],
                 'mockup_style_ids' => [
-                    9389, // random
+                    9093, // Life style
                 ],
                 'placement' => 'default',
                 'technique' => 'digital',
