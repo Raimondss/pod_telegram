@@ -149,8 +149,8 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
 
             foreach ($variantsData as $variantData) {
                 $id = $variantData['id'];
-                $color = $variantData['color'];
-                $size = $variantData['size'];
+                $color = $variantData['color'] ?? '';
+                $size = $variantData['size'] ?? '';
                 $basePrice = $variantData['base_price'];
 
                 TelegramUserVariant::insert([
