@@ -84,18 +84,16 @@ class ProductMapRepository
                         'id' => 1320,
                         'size' => '11 oz',
                         'color' => 'White',
-                        'base_price' => 1500
+                        'base_price' => 1500,
+                        'mockup_style_id' => 10423,
                     ],
-//                    [
-//                        'id' => 4830,
-//                        'size' => '15 oz',
-//                        'color' => 'White',
-//                        'base_price' => 1500
-//                    ],
-                ],
-                'mockup_style_ids' => [
-                    10423, // office env
-//                    10438, // office env
+                    [
+                        'id' => 4830,
+                        'size' => '15 oz',
+                        'color' => 'White',
+                        'base_price' => 1500,
+                        'mockup_style_id' => 10428,
+                    ],
                 ],
                 'placement' => 'default',
                 'technique' => 'sublimation',
@@ -108,16 +106,15 @@ class ProductMapRepository
                     [
                         'id' => 3876,
                         'size' => '12x18',
-                        'base_price' => 1500
+                        'base_price' => 1500,
+                        'mockup_style_id' => 9093
                     ],
-//                    [
-//                        'id' => 6240,
-//                        'size' => '14x14',
-//                        'base_price' => 1500
-//                    ],
-                ],
-                'mockup_style_ids' => [
-                    9093, // Life style
+                    [
+                        'id' => 3877,
+                        'size' => '16x20',
+                        'base_price' => 1500,
+                        'mockup_style_id' => 9095
+                    ],
                 ],
                 'placement' => 'default',
                 'technique' => 'digital',

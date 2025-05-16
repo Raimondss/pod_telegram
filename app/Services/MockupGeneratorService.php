@@ -30,43 +30,10 @@ class MockupGeneratorService
 
     /**
      * @param string $url
-     * @return ApiMockupGeneratorTask[]
-     */
-    public function generateMockupsByUrl(string $url): array
-    {
-        $productMap = $this->productMapRepository->getProductMap();
-
-        $params = new ApiMockupGeneratorParams();
-
-        foreach ($productMap as $productId => $variantData) {
-            $productParams = new ApiMockupGeneratorProductParams();
-            $productParams->catalogProductId = $productId;
-            $productParams->catalogVariantIds = collect($variantData['variants'])->pluck('id')->toArray();
-            $productParams->mockupStyleIds = $variantData['mockup_style_ids'];
-
-            $placements = new ApiMockupGeneratorProductPlacementParams();
-            $placements->placement = $variantData['placement'] ?? $placements->placement;
-            $placements->technique = $variantData['technique'] ?? $placements->technique;
-
-            $layer = new ApiMockupGeneratorProductPlacementLayerParams();
-            $layer->url = $url;
-
-            $placements->layers[] = $layer;
-
-            $productParams->placements[] = $placements;
-
-            $params->products[] = $productParams;
-        }
-
-        return $this->api->generateMockups($params);
-    }
-
-    /**
-     * @param string $url
      * @return ApiMockupGeneratorTask
      * @throws Exception
      */
-    public function generateMockupsForVariants(int $productId, array $variantIds, string $url): ApiMockupGeneratorTask
+    public function generateMockupsForVariants(int $productId, array $variantIds, string $url, array $forceMockupStyleIds = null): ApiMockupGeneratorTask
     {
         $params = new ApiMockupGeneratorParams();
 
@@ -78,7 +45,7 @@ class MockupGeneratorService
         $productParams = new ApiMockupGeneratorProductParams();
         $productParams->catalogProductId = $productId;
         $productParams->catalogVariantIds = $variantIds;
-        $productParams->mockupStyleIds = $productData['mockup_style_ids'];
+        $productParams->mockupStyleIds = $forceMockupStyleIds ?? $productData['mockup_style_ids'];
 
         $placements = new ApiMockupGeneratorProductPlacementParams();
         $placements->placement = $productData['placement'] ?? $placements->placement;
