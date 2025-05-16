@@ -159,23 +159,35 @@ class MockupGeneratorService
         $product->status = TelegramUserProduct::STATUS_READY;
         $product->save();
 
-        Telegram::sendMessage([
-            'chat_id' => $product->telegram_user_id,
-            'text' => "Your new design is ready for sale!",
-            'reply_markup' => json_encode([
-                'inline_keyboard' => [
-                    [
-                        [
-                            'text' => '👕 Share new design',
-                            'switch_inline_query' => 'New design available at: ' . Helpers::getCheckoutDesignLink($product->telegram_user_id, $product->design_name),
-                        ],
-                        [
-                            'text' => '🏪 Share all merch',
-                            'switch_inline_query' => 'See my merch at: ' . Helpers::getBrowseStoreLink($product->telegram_user_id),
-                        ],
-                    ]
-                ]
+        $notReadyProductsForDesign =TelegramUserProduct::where([
+            'telegram_user_id' => $product->telegram_user_id,
+            'design_name' => $product->design_name,
+        ])
+            ->whereIn('status', [
+                TelegramUserProduct::STATUS_PENDING,
+                TelegramUserProduct::STATUS_PROCESSING,
             ])
-        ]);
+            ->get();
+
+        if ($notReadyProductsForDesign->isEmpty()) { // everything is ready
+            Telegram::sendMessage([
+                'chat_id' => $product->telegram_user_id,
+                'text' => "Your new design is ready for sale!",
+                'reply_markup' => json_encode([
+                    'inline_keyboard' => [
+                        [
+                            [
+                                'text' => '👕 Share new design',
+                                'switch_inline_query' => 'New design available at: ' . Helpers::getCheckoutDesignLink($product->telegram_user_id, $product->design_name),
+                            ],
+                            [
+                                'text' => '🏪 Share all merch',
+                                'switch_inline_query' => 'See my merch at: ' . Helpers::getBrowseStoreLink($product->telegram_user_id),
+                            ],
+                        ]
+                    ]
+                ])
+            ]);
+        }
     }
 }

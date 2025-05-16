@@ -108,7 +108,7 @@ class CreateProductFlowProcessor implements FlowProcessorInterface
             $fileUrl = 'https://api.telegram.org/file/bot' . env('TELEGRAM_BOT_TOKEN') . '/' . $filePath;
             $this->createVariantsFromFileUrl($previousState->userId, $fileUrl, $previousState->extra['profit_margin'], $previousState->extra['product_name']);
 
-            $this->sendMessage($previousState->userId, "We are creating your products - you can check status in /my_products");
+            $this->sendMessage($previousState->userId, "We are generating your products. Stay tuned...");
 
             //TODO Move user to my products flow?
             return UserState::getFreshState($previousState->userId, null);
