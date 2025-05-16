@@ -9,6 +9,7 @@ use App\Telegram\FlowProcessors\BuyProductFlowProcessor;
 use App\Telegram\FlowProcessors\CreateProductFlowProcessor;
 use App\Telegram\FlowProcessors\FlowProcessorInterface;
 use App\Telegram\FlowProcessors\PreCheckoutQueryProcessor;
+use App\Telegram\FlowProcessors\ShowBotWelcomeMessageProcessor;
 use App\Telegram\FlowProcessors\ShowHelpFlowProcessor;
 use App\Telegram\FlowProcessors\SuccessfulPaymentProcessor;
 use App\Telegram\Structures\UserState;
@@ -25,12 +26,15 @@ class UpdateProcessor
     public const string SUCCESSFUL_PAYMENT_FLOW = 'successfull_payment_flow';
     public const string ADD_PRODUCT_FLOW_KEY = 'create_product_flow';
     public const string SHOW_HELP_FLOW = 'show_help_flow';
+    public const string SHOW_BOT_WELCOME_MESSAGE_FLOW = 'show_bot_welcome_message';
 
     public const string COMMAND_MANAGE_STORE = '/my_products';
 
     public const string COMMAND_CREATE_PRODUCT = '/create_product';
 
     public const string COMMAND_HELP = '/help';
+
+    public const string COMMAND_START = '/start';
 
     public const string COMMAND_MY_STORE = '/my_store';
 
@@ -46,6 +50,7 @@ class UpdateProcessor
         self::BUY_PRODUCT_FLOW => BuyProductFlowProcessor::class,
         self::BROWSE_PRODUCTS_FLOW => BrowseProductsProcessors::class,
         self::SHOW_HELP_FLOW => ShowHelpFlowProcessor::class,
+        self::SHOW_BOT_WELCOME_MESSAGE_FLOW => ShowBotWelcomeMessageProcessor::class,
     ];
 
     public const array FLOW_START_COMMAND_FLOW_KEY_MAP = [
@@ -53,6 +58,7 @@ class UpdateProcessor
 //        self::COMMAND_MANAGE_STORE => self::MANAGE_STORES_FLOW_KEY,
         self::COMMAND_CREATE_PRODUCT => self::ADD_PRODUCT_FLOW_KEY,
         self::COMMAND_HELP => self::SHOW_HELP_FLOW,
+        self::COMMAND_START => self::SHOW_BOT_WELCOME_MESSAGE_FLOW,
     ];
 
     public function __construct(private UserStateService $userStateService, private TelegramUserService $telegramUserService) {}
@@ -85,12 +91,6 @@ class UpdateProcessor
             $state = $this->createEmptyState($this->getUpdateUserId($update));
             $state->setFlow(self::BROWSE_PRODUCTS_FLOW);
 
-            $state->extra['storeOwnerUserId'] = (int)$data[0];
-            $state->extra['designName'] = $data[1];
-            $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
-        }
-
-        if ($message == self::COMMAND_MY_STORE) {
             $state->extra['storeOwnerUserId'] = (int)$data[0];
             $state->extra['designName'] = $data[1];
             $state->previousStepKey = BrowseProductsProcessors::FLOW_CHECKOUT_DESIGN;
@@ -134,7 +134,7 @@ class UpdateProcessor
         $message = $update->getMessage()->text ?? '';
 
         if ($message === '/start') {
-            return self::SHOW_HELP_FLOW;
+            return self::SHOW_BOT_WELCOME_MESSAGE_FLOW;
         }
 
         if (str_contains($message, 'buy_product')) {
